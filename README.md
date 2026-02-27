@@ -22,7 +22,7 @@
 
 ---
 
-## 🚀 The Automated Way (Fastest)
+## The Automated Way (Fastest)
 
 If you don't want to run all these commands manually, I have created scripts that execute the entire setup clinically. They include progress bars and error handling.
 
