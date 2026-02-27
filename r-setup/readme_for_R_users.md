@@ -1,4 +1,4 @@
-# Group Project — GitHub Setup Guide for RStudio Users
+# Group Project - GitHub Setup Guide for RStudio Users
 
 > **Who this is for:** Aaron's groupmates using RStudio on Windows or Mac who have never used Git, GitHub, or any version control before. Follow every step in order and do not skip anything.
 > 
@@ -10,15 +10,15 @@
 
 0. [**The Automated Way (Fastest)**](#-the-automated-way-fastest)
 1. [What Is GitHub and Why Are We Using It](#1-what-is-github-and-why-are-we-using-it)
-2. [Step 0 — Install Package Managers (Homebrew & Winget)](#2-step-0--install-package-managers-homebrew--winget)
-3. [Step 1 — Install Git on Your Computer](#3-step-1--install-git-on-your-computer)
-4. [Step 2 — Tell Git Who You Are](#4-step-2--tell-git-who-you-are)
-5. [Step 3 — Install GitHub CLI and Log In](#5-step-3--install-github-cli-and-log-in)
-6. [Step 4 — Clone the Project Repository](#6-step-4--clone-the-project-repository)
-7. [Step 5 — Your Daily Workflow (Pull, Edit, Commit, Push)](#7-step-5--your-daily-workflow-pull-edit-commit-push)
+2. [Step 0 - Install Package Managers (Homebrew & Winget)](#2-step-0--install-package-managers-homebrew--winget)
+3. [Step 1 - Install Git on Your Computer](#3-step-1--install-git-on-your-computer)
+4. [Step 2 - Tell Git Who You Are](#4-step-2--tell-git-who-you-are)
+5. [Step 3 - Install GitHub CLI and Log In](#5-step-3--install-github-cli-and-log-in)
+6. [Step 4 - Clone the Project Repository](#6-step-4--clone-the-project-repository)
+7. [Step 5 - Your Daily Workflow (Pull, Edit, Commit, Push)](#7-step-5--your-daily-workflow-pull-edit-commit-push)
 8. [Working with .qmd and .rmd Files](#8-working-with-qmd-and-rmd-files)
 9. [Common Errors and How to Fix Them](#9-common-errors-and-how-to-fix-them)
-10. [Quick Reference — Commands You May Need](#10-quick-reference--commands-you-may-need)
+10. [Quick Reference - Commands You May Need](#10-quick-reference--commands-you-may-need)
 
 ---
 
@@ -42,7 +42,7 @@ If you don't want to run all these commands manually, I have created scripts tha
    - **Phase 6-7:** RStudio integration reminder and final system summary.
 5. You can track progress via the visual bar in the terminal window.
 
-After the script completes, **skip to [Step 4 — Clone the Project Repository](#6-step-4--clone-the-project-repository)**. The scripts already handle the installation, identity, and authentication steps.
+After the script completes, **skip to [Step 4 - Clone the Project Repository](#6-step-4--clone-the-project-repository)**. The scripts already handle the installation, identity, and authentication steps.
 
 ---
 
@@ -66,7 +66,7 @@ Here is the mental model you need:
 
 ---
 
-## 2. Step 0 — Install Package Managers (Homebrew & Winget)
+## 2. Step 0 - Install Package Managers (Homebrew & Winget)
 
 Package managers allow you to install and update software using only the **terminal**. This is the fastest and most reliable way to set up your environment.
 
@@ -87,7 +87,7 @@ Homebrew is the standard package manager for Mac. Open **Terminal** (press `Cmd 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
-The installer will ask for your Mac login password. Type it and press Enter — nothing will appear on screen while you type, that is normal.
+The installer will ask for your Mac login password. Type it and press Enter - nothing will appear on screen while you type, that is normal.
 
 **2. After it finishes, add Homebrew to your PATH.** The installer prints two lines at the end under "Next steps". Copy and run them. They look like this (run both lines, one at a time):
 ```bash
@@ -96,7 +96,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 ```
 
 > [!IMPORTANT]
-> **Copy those lines from YOUR terminal screen, not from this guide.** The exact path depends on your Mac's chip. Apple Silicon Macs (M1/M2/M3/M4) use `/opt/homebrew`. Older Intel Macs use `/usr/local`. The installer always prints the correct version for your machine — scroll up to find it under the "Next steps" heading at the bottom of the installer output.
+> **Copy those lines from YOUR terminal screen, not from this guide.** The exact path depends on your Mac's chip. Apple Silicon Macs (M1/M2/M3/M4) use `/opt/homebrew`. Older Intel Macs use `/usr/local`. The installer always prints the correct version for your machine - scroll up to find it under the "Next steps" heading at the bottom of the installer output.
 
 **3. Confirm Homebrew is working:**
 ```bash
@@ -106,13 +106,13 @@ You should see something like `Homebrew 4.x.x`. If you do, move on to Step 1.
 
 ---
 
-## 3. Step 1 — Install Git on Your Computer
+## 3. Step 1 - Install Git on Your Computer
 
 Git is the underlying engine. GitHub is just a website that hosts repos powered by Git. You need Git installed locally before anything else works.
 
 ### Windows
 
-Open **Command Prompt** (Start Menu → search "Command Prompt") and run:
+Open **Command Prompt** (Start Menu -> search "Command Prompt") and run:
 
 **1. Install Git using winget:**
 ```cmd
@@ -139,19 +139,19 @@ Open **Terminal** and run:
 git --version
 ```
 
-If it prints a version number, you are done — skip to Step 2.
+If it prints a version number, you are done - skip to Step 2.
 
 If Git is not installed, you have two options:
 
-**Option A — Install via Xcode Command Line Tools (no Homebrew required):**
+**Option A - Install via Xcode Command Line Tools (no Homebrew required):**
 
 ```bash
 xcode-select --install
 ```
 
-A popup will appear asking you to install. Click **Install** and wait — this takes 5 to 15 minutes. Once it finishes, run `git --version` to confirm.
+A popup will appear asking you to install. Click **Install** and wait - this takes 5 to 15 minutes. Once it finishes, run `git --version` to confirm.
 
-**Option B — Install via Homebrew (if you completed Step 0):**
+**Option B - Install via Homebrew (if you completed Step 0):**
 
 ```bash
 brew install git
@@ -161,7 +161,7 @@ This is faster and gives you a more up-to-date version of Git. Confirm with `git
 
 ---
 
-## 4. Step 2 — Tell Git Who You Are
+## 4. Step 2 - Tell Git Who You Are
 
 Git needs to know your name and email address so it can label every commit with your identity. This only needs to be done once per computer.
 
@@ -184,15 +184,15 @@ You should see `user.name` and `user.email` listed.
 
 ---
 
-## 5. Step 3 — Install GitHub CLI and Log In
+## 5. Step 3 - Install GitHub CLI and Log In
 
-GitHub CLI (`gh`) is an official command-line tool made by GitHub. It handles authentication for you — once you log in with `gh auth login`, all `git push`, `git pull`, and `git clone` operations will work without passwords or tokens.
+GitHub CLI (`gh`) is an official command-line tool made by GitHub. It handles authentication for you - once you log in with `gh auth login`, all `git push`, `git pull`, and `git clone` operations will work without passwords or tokens.
 
-### 5a — Install GitHub CLI
+### 5a - Install GitHub CLI
 
 #### Windows
 
-Open **Command Prompt** (Start Menu → search "Command Prompt") and run:
+Open **Command Prompt** (Start Menu -> search "Command Prompt") and run:
 
 ```cmd
 winget install --id GitHub.cli
@@ -225,7 +225,7 @@ Verify with:
 gh --version
 ```
 
-### 5b — Log In to GitHub via CLI
+### 5b - Log In to GitHub via CLI
 
 In your terminal, run:
 
@@ -235,13 +235,13 @@ gh auth login
 
 You will be walked through a short series of prompts. Answer them as follows:
 
-1. **Where do you use GitHub?** → Select **GitHub.com** and press Enter.
-2. **What is your preferred protocol for Git operations?** → Select **HTTPS** and press Enter.
-3. **How would you like to authenticate GitHub CLI?** → Select **Login with a web browser** and press Enter.
+1. **Where do you use GitHub?** -> Select **GitHub.com** and press Enter.
+2. **What is your preferred protocol for Git operations?** -> Select **HTTPS** and press Enter.
+3. **How would you like to authenticate GitHub CLI?** -> Select **Login with a web browser** and press Enter.
 4. GitHub CLI will display a one-time code (e.g., `XXXX-XXXX`) and open your browser. **Copy that code**, paste it into the browser page that opens, and click **Authorize GitHub CLI**.
 5. You may be asked for your GitHub password to confirm. Enter it and complete the authorization.
 
-Back in your terminal, you should see: `✓ Authentication complete.`
+Back in your terminal, you should see: `OK. Authentication complete.`
 
 Verify it worked:
 
@@ -252,7 +252,7 @@ gh auth status
 > [!TIP]
 > **Success check:** If `gh auth status` prints something like `Logged in to github.com as [your-username]`, you are done. Move to Step 4. If it says "You are not logged into any GitHub hosts", run `gh auth login` again from the top.
 
-### 5c — Verify RStudio Can See Git
+### 5c - Verify RStudio Can See Git
 
 Go to **Tools > Global Options > Git/SVN**. The field labeled **Git executable** should show a path (e.g., `C:/Program Files/Git/bin/git.exe` on Windows, or `/usr/bin/git` on Mac). If it is empty, click **Browse** and locate your Git installation manually.
 
@@ -260,16 +260,16 @@ Restart RStudio after any changes here.
 
 ---
 
-## 6. Step 4 — Clone the Project Repository
+## 6. Step 4 - Clone the Project Repository
 
 Cloning creates a local copy of the repo on your laptop. You only do this once.
 
 The project lead will share the repository name with you in the format `username/project-name`.
 
 > [!IMPORTANT]
-> **Accept your email invitation before you clone.** When the project lead adds you as a collaborator, GitHub sends you an email invite. Check your inbox — and spam folder — for an email from GitHub and click **Accept invitation**. You will not be able to push changes to the repo until you accept. Simply being "added" is not enough.
+> **Accept your email invitation before you clone.** When the project lead adds you as a collaborator, GitHub sends you an email invite. Check your inbox - and spam folder - for an email from GitHub and click **Accept invitation**. You will not be able to push changes to the repo until you accept. Simply being "added" is not enough.
 
-### Option A — Clone using GitHub CLI (recommended)
+### Option A - Clone using GitHub CLI (recommended)
 
 Open your terminal, navigate to your Documents folder, then clone the repo:
 
@@ -277,7 +277,7 @@ Open your terminal, navigate to your Documents folder, then clone the repo:
 # 1. Go to your Documents folder
 cd Documents
 
-# 2. Clone the repo — replace username/project-name with the actual name from the project lead
+# 2. Clone the repo - replace username/project-name with the actual name from the project lead
 gh repo clone username/project-name
 
 # 3. Confirm the folder was created
@@ -291,17 +291,17 @@ Then open RStudio, go to **File > Open Project**, navigate into the newly create
 > [!IMPORTANT]
 > **NO PROJECT = NO GIT TAB.** If the Git tab is missing from RStudio's top-right panel, it is almost certainly because you opened a `.qmd` or `.r` file directly (by double-clicking it in your file explorer). That does not load the project. You must go to **File > Open Project** and select the `.Rproj` file inside the cloned folder. Always open the project first, then open your files from within RStudio.
 
-### Option B — Clone using RStudio's GUI
+### Option B - Clone using RStudio's GUI
 
 1. Open the repo on GitHub. Click the green **Code** button, make sure **HTTPS** is selected, and copy the URL.
 2. In RStudio, go to **File > New Project > Version Control > Git**.
 3. Paste the copied URL into the **Repository URL** field.
-4. Choose where you want the project folder to live. Do not put it inside a synced cloud folder like OneDrive or Dropbox — this causes conflicts.
+4. Choose where you want the project folder to live. Do not put it inside a synced cloud folder like OneDrive or Dropbox - this causes conflicts.
 5. Click **Create Project**.
 
 RStudio will download the repo, open it as a project, and a **Git** tab will appear in the top-right panel. You are now set up.
 
-### Option C — Clone using the standard Git command
+### Option C - Clone using the standard Git command
 
 If you have the repository link (e.g., `https://github.com/username/project-name.git`), you can clone it directly. You can find this link on the GitHub page by clicking the green **Code** button, or you can ask the project owner for it.
 
@@ -317,7 +317,7 @@ Then open RStudio, go to **File > Open Project**, navigate into the newly create
 
 ---
 
-## 7. Step 5 — Your Daily Workflow (Pull, Edit, Commit, Push)
+## 7. Step 5 - Your Daily Workflow (Pull, Edit, Commit, Push)
 
 Every time you work on the project, follow this exact sequence.
 
@@ -332,7 +332,7 @@ Open and edit `.qmd`, `.rmd`, or `.r` files just like you normally would. Nothin
 ### When You Are Done: Stage, Commit, Push
 
 > [!CAUTION]
-> **Large file landmine.** GitHub will reject your entire push if any single file exceeds 100MB. This most commonly happens when someone accidentally stages a raw dataset (`.csv`, `.xlsx`) or a large output file (`.zip`). Before clicking Stage, check your file sizes in your file explorer. As a rule: **commit your code and analysis scripts — not raw data files.** If the dataset is small (under a few MB), it is usually fine.
+> **Large file landmine.** GitHub will reject your entire push if any single file exceeds 100MB. This most commonly happens when someone accidentally stages a raw dataset (`.csv`, `.xlsx`) or a large output file (`.zip`). Before clicking Stage, check your file sizes in your file explorer. As a rule: **commit your code and analysis scripts - not raw data files.** If the dataset is small (under a few MB), it is usually fine.
 
 **Stage:** In the Git tab, you will see a list of files you modified. Each file has a checkbox in the **Staged** column. Check the box next to every file you want to include in this snapshot. Staging means "I want to include this file in my next commit."
 
@@ -340,20 +340,20 @@ Open and edit `.qmd`, `.rmd`, or `.r` files just like you normally would. Nothin
 
 | | Commit Message | Why |
 |---|---|---|
-| ✅ | `Fix p-value in Table 1` | Specific and traceable |
-| ✅ | `Add regression section to chapter 2` | The team knows exactly what changed |
-| ✅ | `Correct axis label on Figure 3` | Understandable months later |
-| ❌ | `update` | Update what? Nobody knows. |
-| ❌ | `asdfasdf` | Not acceptable |
-| ❌ | `final version` | There is no "final" — commit history is the tracker |
-| ❌ | `changes` | What changes? |
+| ok | `Fix p-value in Table 1` | Specific and traceable |
+| ok | `Add regression section to chapter 2` | The team knows exactly what changed |
+| ok | `Correct axis label on Figure 3` | Understandable months later |
+| fail | `update` | Update what? Nobody knows. |
+| fail | `asdfasdf` | Not acceptable |
+| fail | `final version` | There is no "final" - commit history is the tracker |
+| fail | `changes` | What changes? |
 
 **Push:** Click the green **Push** button (up arrow). RStudio will upload your commits to GitHub. If it succeeds, you will see a message about the branch being updated.
 
 ### If You Prefer the Terminal (or the Buttons Are Not Working)
 
 > [!WARNING]
-> **Console ≠ Terminal.** RStudio has two separate tabs at the bottom of the screen. The **Console** tab (where R code runs) and the **Terminal** tab (where Git commands run). Typing `git pull` into the Console will produce an error. Always switch to the **Terminal** tab before running any command from this guide.
+> **Console != Terminal.** RStudio has two separate tabs at the bottom of the screen. The **Console** tab (where R code runs) and the **Terminal** tab (where Git commands run). Typing `git pull` into the Console will produce an error. Always switch to the **Terminal** tab before running any command from this guide.
 
 Open the **Terminal** tab in RStudio (next to the Console tab) and run these commands in order after editing your files:
 
@@ -376,7 +376,7 @@ Replace the commit message with something that describes what you actually did.
 ### Summary
 
 ```text
-Pull → Edit → Stage → Commit (with message) → Push
+Pull -> Edit -> Stage -> Commit (with message) -> Push
 ```
 
 Do this every single work session. Do not accumulate many sessions worth of changes before committing. Small, frequent commits are much easier to manage than one massive commit.
@@ -386,7 +386,7 @@ Do this every single work session. Do not accumulate many sessions worth of chan
 > [!IMPORTANT]
 > **Bad file names break paths and make the commit history unreadable.** Follow these rules for every file you save into the project folder.
 
-| Rule | ✅ Good | ❌ Bad |
+| Rule | ok Good | fail Bad |
 |---|---|---|
 | No spaces | `chapter_2_analysis.qmd` | `chapter 2 analysis.qmd` |
 | No special characters | `regression-results.r` | `regression (results!).r` |
@@ -424,7 +424,7 @@ This is a lightweight LaTeX distribution that RStudio manages automatically. Do 
 
 ### What to Commit
 
-Always commit both the `.qmd` source file and the rendered output if the project requires it. Never commit the `.Rproj.user` folder or `.RData` files — these are local and will cause conflicts. The `.gitignore` file in the repo already excludes them, so they should not appear in your Git tab.
+Always commit both the `.qmd` source file and the rendered output if the project requires it. Never commit the `.Rproj.user` folder or `.RData` files - these are local and will cause conflicts. The `.gitignore` file in the repo already excludes them, so they should not appear in your Git tab.
 
 ---
 
@@ -436,7 +436,7 @@ Always commit both the `.qmd` source file and the rendered output if the project
 
 **Fix:** Go to **Tools > Global Options > Git/SVN**, click **Browse** next to the Git executable field, and manually navigate to `git.exe` (Windows: usually `C:\Program Files\Git\bin\git.exe`) or `/usr/bin/git` (Mac). Restart RStudio.
 
-### Push rejected — "Updates were rejected because the remote contains work that you do not have locally"
+### Push rejected - "Updates were rejected because the remote contains work that you do not have locally"
 
 **Cause:** Someone pushed changes after you last pulled, so your local copy is behind the remote.
 
@@ -482,13 +482,13 @@ git config --global core.autocrlf true
 
 **Fix:** Check the diff in the Git tab. If the change is only whitespace or line endings and you did not intentionally edit the file, uncheck the **Staged** checkbox for that file before committing.
 
-### Cannot push — "Permission denied" or "Repository not found"
+### Cannot push - "Permission denied" or "Repository not found"
 
 **Cause:** Your GitHub account was not added as a collaborator to the repo, or you have not accepted the invite.
 
 **Fix:** Check your email (including spam) for a GitHub collaboration invite and click **Accept invitation**. Then verify your login status with `gh auth status`. If you cannot find the email, message the project lead to resend the invite from **Settings > Collaborators** in the repo.
 
-### The Nuclear Option — Starting Over When Everything Is Broken
+### The Nuclear Option - Starting Over When Everything Is Broken
 
 **When to use this:** Your local copy is so broken that neither you nor the project lead can figure out how to fix it, and you just need a clean slate.
 
@@ -507,11 +507,11 @@ This is not the "right" Git way to resolve conflicts, but it works, and it is fa
 
 ---
 
-## 10. Quick Reference — Commands You May Need
+## 10. Quick Reference - Commands You May Need
 
 Most operations are covered by RStudio's Git tab buttons (Pull, Stage, Commit, Push). The following terminal commands are only needed if the GUI fails or you need to diagnose something.
 
-Open the **Terminal** tab in RStudio (next to the Console tab) to run these. You do not need to navigate to the project folder first — RStudio's terminal opens directly in the project directory.
+Open the **Terminal** tab in RStudio (next to the Console tab) to run these. You do not need to navigate to the project folder first - RStudio's terminal opens directly in the project directory.
 
 | What you want to do | Command |
 |---|---|

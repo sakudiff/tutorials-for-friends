@@ -1,4 +1,4 @@
-# Python Quant Setup Guide — Modern Workflow (uv + VS Code)
+# Python Quant Setup Guide - Modern Workflow (uv + VS Code)
 
 > **Who this is for:** Anyone needing a stable, modern Python 3.12+ environment with professional tools. 
 > 
@@ -6,7 +6,7 @@
 
 ---
 
-## 🚀 The Automated Way (Fastest)
+## The Automated Way (Fastest)
 
 I have created scripts that handle the entire setup: installing the package managers, the IDE, the Python version, and the essential VS Code extensions.
 
@@ -28,7 +28,7 @@ I have created scripts that handle the entire setup: installing the package mana
 
 ---
 
-## 🏗️ Your Daily Workflow (The `uv` Way)
+## Your Daily Workflow (The uv Way)
 
 We are using `uv` instead of standard `pip` or `conda` because it is up to 100x faster and more reliable.
 
@@ -63,7 +63,7 @@ uv run main.py
 
 ---
 
-## 🛠️ VS Code Configuration
+## VS Code Configuration
 
 The setup script automatically installs these extensions:
 - **Python (Microsoft):** Basic language support.
@@ -75,7 +75,7 @@ The setup script automatically installs these extensions:
 
 ---
 
-## 🆘 Common Errors
+## Common Errors
 
 ### `code` command not found
 The script attempts to add VS Code to your path. If it fails:

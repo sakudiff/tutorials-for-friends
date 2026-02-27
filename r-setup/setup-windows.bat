@@ -38,16 +38,21 @@ function Write-Progress-Bar {
     $filled = [math]::Floor(($width * $Current) / $Total)
     $empty = $width - $filled
 
-    $bar = "█" * $filled + "░" * $empty
+    $bar = "#" * $filled + "-" * $empty
     Write-Host "`rProgress: [$bar] $percent% " -NoNewline -ForegroundColor Cyan
     Write-Host "" # New line for the next message
+}
+
+function Refresh-Path {
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("Path","User")
 }
 
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host " Windows Dev Setup: Clinical Execution       " -ForegroundColor Cyan
 Write-Host "=============================================" -ForegroundColor Cyan
 
-# ── Helper function ───────────────────────────────────────────────────────────
+# -- Helper function -----------------------------------------------------------
 function Install-WithWinget {
     param (
         [string]$Id,
@@ -55,12 +60,12 @@ function Install-WithWinget {
     )
     $script:CurrentStep++
     Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[→] Installing $Name..." -ForegroundColor Yellow
+    Write-Host "[->] Installing $Name..." -ForegroundColor Yellow
     winget install --id $Id --silent --accept-package-agreements --accept-source-agreements
-    Write-Host "[✓] $Name installed." -ForegroundColor Green
+    Write-Host "[ok] $Name installed." -ForegroundColor Green
 }
 
-# ── 1. Check winget is available ─────────────────────────────────────────────
+# -- 1. Check winget is available ---------------------------------------------
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
@@ -70,56 +75,53 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-Write-Host "[✓] winget found." -ForegroundColor Green
+Write-Host "[ok] winget found." -ForegroundColor Green
 winget source update
 
-# ── 2. Git ────────────────────────────────────────────────────────────────────
+# -- 2. Git --------------------------------------------------------------------
 if (Get-Command git -ErrorAction SilentlyContinue) {
     $script:CurrentStep++
     Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[✓] Git already installed — skipping." -ForegroundColor Green
+    Write-Host "[ok] Git already installed - skipping." -ForegroundColor Green
 } else {
     Install-WithWinget "Git.Git" "Git"
     # Refresh PATH so git is available in this session
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
-                [System.Environment]::GetEnvironmentVariable("Path","User")
+    Refresh-Path
 }
 
-# ── 3. GitHub CLI (gh) ────────────────────────────────────────────────────────
+# -- 3. GitHub CLI (gh) --------------------------------------------------------
 if (Get-Command gh -ErrorAction SilentlyContinue) {
     $script:CurrentStep++
     Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[✓] GitHub CLI already installed — skipping." -ForegroundColor Green
+    Write-Host "[ok] GitHub CLI already installed - skipping." -ForegroundColor Green
 } else {
     Install-WithWinget "GitHub.cli" "GitHub CLI"
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
-                [System.Environment]::GetEnvironmentVariable("Path","User")
+    Refresh-Path
 }
 
-# ── 4. GitHub Desktop ─────────────────────────────────────────────────────────
+# -- 4. GitHub Desktop ---------------------------------------------------------
 $githubDesktop = Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" `
     -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "GitHub Desktop" }
 
 if ($githubDesktop) {
     $script:CurrentStep++
     Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[✓] GitHub Desktop already installed — skipping." -ForegroundColor Green
+    Write-Host "[ok] GitHub Desktop already installed - skipping." -ForegroundColor Green
 } else {
     Install-WithWinget "GitHub.GitHubDesktop" "GitHub Desktop"
 }
 
-# ── 5. R ──────────────────────────────────────────────────────────────────────
+# -- 5. R ----------------------------------------------------------------------
 if (Get-Command Rscript -ErrorAction SilentlyContinue) {
     $script:CurrentStep++
     Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[✓] R already installed — skipping." -ForegroundColor Green
+    Write-Host "[ok] R already installed - skipping." -ForegroundColor Green
 } else {
     Install-WithWinget "RProject.R" "R"
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
-                [System.Environment]::GetEnvironmentVariable("Path","User")
+    Refresh-Path
 }
 
-# ── 6. RStudio ────────────────────────────────────────────────────────────────
+# -- 6. RStudio ----------------------------------------------------------------
 $rstudio = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
                             "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" `
     -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "RStudio*" }
@@ -127,12 +129,12 @@ $rstudio = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uni
 if ($rstudio) {
     $script:CurrentStep++
     Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[✓] RStudio already installed — skipping." -ForegroundColor Green
+    Write-Host "[ok] RStudio already installed - skipping." -ForegroundColor Green
 } else {
     Install-WithWinget "Posit.RStudio" "RStudio"
 }
 
-# ── 7. Configure Git (only if not already set) ────────────────────────────────
+# -- 7. Configure Git (only if not already set) --------------------------------
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 $currentName  = git config --global user.name  2>$null
@@ -148,16 +150,17 @@ if (-not $currentEmail) {
     git config --global user.email $gitEmail
 }
 
-# ── 8. Authenticate GitHub CLI ────────────────────────────────────────────────
+# -- 8. Authenticate GitHub CLI ------------------------------------------------
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 $authStatus = gh auth status 2>&1
 if ($authStatus -match "Logged in") {
-    Write-Host "[✓] GitHub CLI already authenticated — skipping." -ForegroundColor Green
+    Write-Host "[ok] GitHub CLI already authenticated - skipping." -ForegroundColor Green
 } else {
-    Write-Host "[→] Authenticating GitHub CLI (browser will open)..." -ForegroundColor Yellow
+    Write-Host "[->] Authenticating GitHub CLI (browser will open)..." -ForegroundColor Yellow
     gh auth login
 }
+
 
 # ── 9. Summary ────────────────────────────────────────────────────────────────
 Write-Host ""

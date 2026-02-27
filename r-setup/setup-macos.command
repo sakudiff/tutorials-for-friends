@@ -92,8 +92,8 @@ render_progress() {
     local empty=$(( width - filled ))
 
     printf "${CYAN}Progress: ["
-    [[ $filled -gt 0 ]] && printf "${GREEN}%${filled}s${NC}" "" | tr ' ' '█'
-    [[ $empty -gt 0 ]] && printf "%${empty}s" "" | tr ' ' '░'
+    [[ $filled -gt 0 ]] && printf "${GREEN}%${filled}s${NC}" "" | tr ' ' '#'
+    [[ $empty -gt 0 ]] && printf "%${empty}s" "" | tr ' ' '-'
     printf "${CYAN}] %d%%${NC}\n" "$percent"
 }
 
@@ -106,16 +106,16 @@ install_tool() {
     ((CURRENT_STEP++))
     render_progress
 
-    echo -e "${CYAN}[→] Checking $tool_name...${NC}"
+    echo -e "${CYAN}[->] Checking $tool_name...${NC}"
     if command -v "$verify_bin" &>/dev/null; then
-        echo -e "${GREEN}[✓] $tool_name is already present.${NC}"
+        echo -e "${GREEN}[ok] $tool_name is already present.${NC}"
     else
         echo -e "${YELLOW}[!] $tool_name missing. Installing...${NC}"
         if retry_command "$tool_name" brew install "$brew_pkg"; then
             refresh_path  # Make the binary available immediately
-            echo -e "${GREEN}[✓] $tool_name successfully installed.${NC}"
+            echo -e "${GREEN}[ok] $tool_name successfully installed.${NC}"
         else
-            echo -e "${RED}[✘] Critical failure installing $tool_name.${NC}"
+            echo -e "${RED}[fail] Critical failure installing $tool_name.${NC}"
             read -r
             exit 1
         fi
@@ -131,30 +131,30 @@ install_cask() {
     ((CURRENT_STEP++))
     render_progress
 
-    echo -e "${CYAN}[→] Checking $app_name...${NC}"
+    echo -e "${CYAN}[->] Checking $app_name...${NC}"
     if [ -d "$app_path" ]; then
-        echo -e "${GREEN}[✓] $app_name is already installed.${NC}"
+        echo -e "${GREEN}[ok] $app_name is already installed.${NC}"
     else
         echo -e "${YELLOW}[!] $app_name missing. Downloading...${NC}"
         if retry_command "$app_name" brew install --cask "$cask_name"; then
-            echo -e "${GREEN}[✓] $app_name installed.${NC}"
+            echo -e "${GREEN}[ok] $app_name installed.${NC}"
         else
-            echo -e "${RED}[✘] Failed to install $app_name.${NC}"
+            echo -e "${RED}[fail] Failed to install $app_name.${NC}"
             read -r
             exit 1
         fi
     fi
 }
 
-# ── Phase 1: Homebrew ─────────────────────────────────────────────────────────
+# -- Phase 1: Homebrew ---------------------------------------------------------
 
 ((CURRENT_STEP++))
 render_progress
 if ! command -v brew &>/dev/null; then
-    echo -e "${YELLOW}[→] Homebrew missing. This will take a few minutes...${NC}"
+    echo -e "${YELLOW}[->] Homebrew missing. This will take a few minutes...${NC}"
     echo -e "${CYAN}    You may be prompted for your Mac login password.${NC}"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
-        echo -e "${RED}[✘] Homebrew install failed. Check your internet connection and try again.${NC}"
+        echo -e "${RED}[fail] Homebrew install failed. Check your internet connection and try again.${NC}"
         read -r
         exit 1
     }
@@ -173,29 +173,29 @@ if ! command -v brew &>/dev/null; then
         eval "$(/usr/local/bin/brew shellenv)"
     fi
 else
-    echo -e "${GREEN}[✓] Homebrew already installed.${NC}"
+    echo -e "${GREEN}[ok] Homebrew already installed.${NC}"
 fi
 
 # Update formula database before installing anything
 ((CURRENT_STEP++))
 render_progress
-echo -e "${CYAN}[→] Updating Homebrew...${NC}"
+echo -e "${CYAN}[->] Updating Homebrew...${NC}"
 brew update --quiet
 
-# ── Phase 2: CLI Tools ────────────────────────────────────────────────────────
+# -- Phase 2: CLI Tools --------------------------------------------------------
 
 install_tool "Git"        "git" "git"
 install_tool "GitHub CLI" "gh"  "gh"
 
-# ── Phase 3: Applications ─────────────────────────────────────────────────────
+# -- Phase 3: Applications -----------------------------------------------------
 
 install_cask "GitHub Desktop" "github"  "/Applications/GitHub Desktop.app"
 install_cask "R"              "r"       "/Library/Frameworks/R.framework"
 install_cask "RStudio"        "rstudio" "/Applications/RStudio.app"
 
-# ── Phase 4: Git Identity ─────────────────────────────────────────────────────
+# -- Phase 4: Git Identity -----------------------------------------------------
 
-echo -e "\n${CYAN}── Git Identity ──────────────────────────────${NC}"
+echo -e "\n${CYAN}-- Git Identity ------------------------------${NC}"
 while true; do
     CURRENT_NAME=$(git config --global user.name 2>/dev/null || echo "")
     CURRENT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
@@ -208,48 +208,48 @@ while true; do
         if [[ -n "$NEW_NAME" && -n "$NEW_EMAIL" ]]; then
             git config --global user.name  "$NEW_NAME"
             git config --global user.email "$NEW_EMAIL"
-            echo -e "${GREEN}[✓] Identity set.${NC}"
+            echo -e "${GREEN}[ok] Identity set.${NC}"
             break
         else
             echo -e "${RED}[!] Both fields are required. Try again.${NC}"
         fi
     else
-        echo -e "${GREEN}[✓] Already set: $CURRENT_NAME <$CURRENT_EMAIL>${NC}"
+        echo -e "${GREEN}[ok] Already set: $CURRENT_NAME <$CURRENT_EMAIL>${NC}"
         break
     fi
 done
 
-# ── Phase 5: GitHub Authentication ────────────────────────────────────────────
+# -- Phase 5: GitHub Authentication --------------------------------------------
 
-echo -e "\n${CYAN}── GitHub Authentication ─────────────────────${NC}"
+echo -e "\n${CYAN}-- GitHub Authentication ---------------------${NC}"
 if gh auth status &>/dev/null; then
-    echo -e "${GREEN}[✓] Already logged into GitHub CLI.${NC}"
+    echo -e "${GREEN}[ok] Already logged into GitHub CLI.${NC}"
 else
-    echo -e "${YELLOW}[!] Not logged in. Your browser will open — sign in and come back here.${NC}"
+    echo -e "${YELLOW}[!] Not logged in. Your browser will open -- sign in and come back here.${NC}"
     echo -e "${CYAN}    When prompted, choose HTTPS and then 'Login with a web browser'.${NC}"
     until gh auth status &>/dev/null; do
         gh auth login --hostname github.com --git-protocol https --web
         if gh auth status &>/dev/null; then
-            echo -e "${GREEN}[✓] Authentication complete.${NC}"
+            echo -e "${GREEN}[ok] Authentication complete.${NC}"
         else
             echo -e "${RED}[!] Login failed or cancelled. Trying again...${NC}"
         fi
     done
 fi
 
-# ── Phase 6: RStudio Git Integration Reminder ─────────────────────────────────
+# -- Phase 6: RStudio Git Integration Reminder ---------------------------------
 
 GIT_PATH=$(command -v git)
 
-echo -e "\n${CYAN}── RStudio Setup Reminder ────────────────────${NC}"
+echo -e "\n${CYAN}-- RStudio Setup Reminder --------------------${NC}"
 echo -e " 1. Open RStudio (in /Applications)."
-echo -e " 2. Go to: Tools → Global Options → Git/SVN"
+echo -e " 2. Go to: Tools -> Global Options -> Git/SVN"
 echo -e " 3. Check 'Enable version control interface for RStudio projects'."
 echo -e " 4. Git executable should auto-fill as: ${YELLOW}$GIT_PATH${NC}"
 echo -e "    If it's blank, paste that path in manually."
 echo -e " 5. Click OK, then restart RStudio."
 
-# ── Phase 7: Final Summary ────────────────────────────────────────────────────
+# -- Phase 7: Final Summary ----------------------------------------------------
 
 echo -e "\n${CYAN}=============================================${NC}"
 echo -e "${GREEN}   All done. Summary:                        ${NC}"

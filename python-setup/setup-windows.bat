@@ -34,9 +34,14 @@ function Write-Progress-Bar {
     $percent = [math]::Floor(($Current / $Total) * 100)
     $filled = [math]::Floor(($width * $Current) / $Total)
     $empty = $width - $filled
-    $bar = "█" * $filled + "░" * $empty
+    $bar = "#" * $filled + "-" * $empty
     Write-Host "`rProgress: [$bar] $percent% " -NoNewline -ForegroundColor Cyan
     Write-Host ""
+}
+
+function Refresh-Path {
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" +
+                [System.Environment]::GetEnvironmentVariable("Path","User")
 }
 
 Write-Host "=============================================" -ForegroundColor Cyan
@@ -53,23 +58,26 @@ winget source update
 
 # --- 2. Git & GitHub CLI ---
 $script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-Write-Host "[→] Installing Git & GitHub CLI..." -ForegroundColor Yellow
+Write-Host "[->] Installing Git & GitHub CLI..." -ForegroundColor Yellow
 winget install --id Git.Git --silent --accept-package-agreements --accept-source-agreements
 winget install --id GitHub.cli --silent --accept-package-agreements --accept-source-agreements
+Refresh-Path
 
 # --- 3. uv (Python Manager) ---
 $script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-Write-Host "[→] Installing uv..." -ForegroundColor Yellow
+Write-Host "[->] Installing uv..." -ForegroundColor Yellow
 winget install --id astral-sh.uv --silent --accept-package-agreements --accept-source-agreements
+Refresh-Path
 
 # --- 4. VS Code ---
 $script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-Write-Host "[→] Installing VS Code..." -ForegroundColor Yellow
+Write-Host "[->] Installing VS Code..." -ForegroundColor Yellow
 winget install --id Microsoft.VisualStudioCode --silent --accept-package-agreements --accept-source-agreements
+Refresh-Path
 
 # --- 5. VS Code Extensions ---
 $script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-Write-Host "[→] Installing Extensions (Python, Pylance, Ruff, etc.)..." -ForegroundColor Yellow
+Write-Host "[->] Installing Extensions (Python, Pylance, Ruff, etc.)..." -ForegroundColor Yellow
 $extensions = @(
     "ms-python.python",
     "ms-python.vscode-pylance",
@@ -80,7 +88,7 @@ $extensions = @(
 )
 foreach ($ext in $extensions) {
     code --install-extension $ext --force | Out-Null
-    Write-Host "    [✓] $ext" -ForegroundColor Green
+    Write-Host "    [ok] $ext" -ForegroundColor Green
 }
 
 # --- 6. Identity & Auth ---
@@ -97,13 +105,13 @@ if (-not $currentEmail) {
 }
 $authStatus = gh auth status 2>&1
 if ($authStatus -notmatch "Logged in") {
-    Write-Host "[→] Authenticating GitHub CLI..." -ForegroundColor Yellow
+    Write-Host "[->] Authenticating GitHub CLI..." -ForegroundColor Yellow
     gh auth login
 }
 
 # --- 7. uv Python Install ---
 $script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-Write-Host "[→] Setting up Python 3.12..." -ForegroundColor Yellow
+Write-Host "[->] Setting up Python 3.12..." -ForegroundColor Yellow
 uv python install 3.12
 
 Write-Host "`nAll done. VS Code and uv are ready." -ForegroundColor Green

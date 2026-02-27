@@ -22,6 +22,15 @@ echo -e "${CYAN}=============================================${NC}"
 echo -e "${CYAN}   Python Quant Setup: Clinical Execution    ${NC}"
 echo -e "${CYAN}=============================================${NC}"
 
+# Refresh PATH so newly installed brew binaries are visible in this session
+refresh_path() {
+    if [[ "$(uname -m)" == "arm64" ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    else
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+}
+
 # Progress Tracking
 TOTAL_STEPS=8
 CURRENT_STEP=0
@@ -32,38 +41,39 @@ render_progress() {
     local filled=$(( width * CURRENT_STEP / TOTAL_STEPS ))
     local empty=$(( width - filled ))
     printf "${CYAN}Progress: ["
-    [[ $filled -gt 0 ]] && printf "${GREEN}%${filled}s${NC}" "" | tr ' ' '█'
-    [[ $empty -gt 0 ]] && printf "%${empty}s" "" | tr ' ' '░'
+    [[ $filled -gt 0 ]] && printf "${GREEN}%${filled}s${NC}" "" | tr ' ' '#'
+    [[ $empty -gt 0 ]] && printf "%${empty}s" "" | tr ' ' '-'
     printf "${CYAN}] %d%%${NC}\n" "$percent"
 }
 
 # --- Phase 1: Homebrew ---
 ((CURRENT_STEP++)); render_progress
 if ! command -v brew &>/dev/null; then
-    echo -e "${YELLOW}[→] Installing Homebrew...${NC}"
+    echo -e "${YELLOW}[->] Installing Homebrew...${NC}"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    eval "$(/opt/homebrew/bin/brew shellenv)" 2>/dev/null || eval "$(/usr/local/bin/brew shellenv)"
+    refresh_path
 else
-    echo -e "${GREEN}[✓] Homebrew present.${NC}"
+    echo -e "${GREEN}[ok] Homebrew present.${NC}"
 fi
 
 # --- Phase 2: CLI Tools (Git, GH, uv) ---
 ((CURRENT_STEP++)); render_progress
-echo -e "${CYAN}[→] Installing CLI Tools (Git, GitHub CLI, uv)...${NC}"
+echo -e "${CYAN}[->] Installing CLI Tools (Git, GitHub CLI, uv)...${NC}"
 brew install git gh uv --quiet
+refresh_path
 
 # --- Phase 3: VS Code ---
 ((CURRENT_STEP++)); render_progress
 if [ ! -d "/Applications/Visual Studio Code.app" ]; then
-    echo -e "${YELLOW}[→] Installing VS Code...${NC}"
+    echo -e "${YELLOW}[->] Installing VS Code...${NC}"
     brew install --cask visual-studio-code --quiet
 else
-    echo -e "${GREEN}[✓] VS Code present.${NC}"
+    echo -e "${GREEN}[ok] VS Code present.${NC}"
 fi
 
 # --- Phase 4: VS Code Extensions ---
 ((CURRENT_STEP++)); render_progress
-echo -e "${CYAN}[→] Installing Extensions (Python, Pylance, Ruff, GitLens)...${NC}"
+echo -e "${CYAN}[->] Installing Extensions (Python, Pylance, Ruff, GitLens)...${NC}"
 # Use code CLI (ensure it is in path)
 export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
 extensions=(
@@ -76,12 +86,12 @@ extensions=(
 )
 for ext in "${extensions[@]}"; do
     code --install-extension "$ext" --force &>/dev/null
-    echo -e "    ${GREEN}[✓] $ext${NC}"
+    echo -e "    ${GREEN}[ok] $ext${NC}"
 done
 
 # --- Phase 5: Git Identity ---
 ((CURRENT_STEP++)); render_progress
-echo -e "\n${CYAN}── Git Identity ──────────────────────────────${NC}"
+echo -e "\n${CYAN}-- Git Identity ------------------------------${NC}"
 CURRENT_NAME=$(git config --global user.name)
 if [[ -z "$CURRENT_NAME" ]]; then
     read -rp "    Full Name: " NAME
@@ -95,16 +105,16 @@ fi
 
 # --- Phase 6: GitHub Auth ---
 ((CURRENT_STEP++)); render_progress
-echo -e "\n${CYAN}── GitHub Authentication ─────────────────────${NC}"
+echo -e "\n${CYAN}-- GitHub Authentication ---------------------${NC}"
 if ! gh auth status &>/dev/null; then
     gh auth login --hostname github.com --git-protocol https --web
 else
-    echo -e "${GREEN}[✓] Logged in.${NC}"
+    echo -e "${GREEN}[ok] Logged in.${NC}"
 fi
 
 # --- Phase 7: uv Python Check ---
 ((CURRENT_STEP++)); render_progress
-echo -e "${CYAN}[→] Setting up default Python via uv...${NC}"
+echo -e "${CYAN}[->] Setting up default Python via uv...${NC}"
 uv python install 3.12 --quiet
 
 # --- Phase 8: Summary ---
