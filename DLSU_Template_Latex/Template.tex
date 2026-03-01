@@ -1,0 +1,113 @@
+\documentclass[12pt]{article}
+
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{tikz}
+\usetikzlibrary{calc}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{.}{..}}
+\usepackage{csquotes}
+\usepackage[hidelinks]{hyperref}
+\usepackage[style=apa, backend=biber]{biblatex}
+\addbibresource{references.bib}
+
+\definecolor{dlsugreen}{HTML}{00703C}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+
+    % Border logic using TikZ
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw[line width = 1.5pt, color=dlsugreen] ($(current page.north west) + (0.75in,-0.75in)$) rectangle ($(current page.south east) + (-0.75in,0.75in)$);
+        \draw[line width = 0.5pt, color=dlsugreen] ($(current page.north west) + (0.85in,-0.85in)$) rectangle ($(current page.south east) + (-0.85in,0.85in)$);
+    \end{tikzpicture}
+
+    % Top Logo and Name (Inline)
+    \vspace*{0.5cm}
+    \begin{tabular}{c@{\quad}l}
+        \raisebox{-2.0ex}{%
+            \IfFileExists{image/paper/dlsu_logo.png}{%
+                \includegraphics[height=3.5em]{image/paper/dlsu_logo.png}%
+            }{%
+                \rule{1in}{3.5em}% Placeholder
+            }%
+        } & 
+        \huge \textbf{\color{dlsugreen} De La Salle University}
+    \end{tabular}
+    
+    \vfill
+
+    % Central Seal (Smaller)
+    \IfFileExists{image/paper/dlsu_logo.png}{%
+        \includegraphics[width=0.25\textwidth]{image/paper/dlsu_logo.png} \\
+    }{%
+        \rule{0.25\textwidth}{0.25\textwidth} \\
+    }
+
+    \vfill
+
+    % Project Title
+    {\LARGE \textbf{[Project Title Here]}} \\
+    \vspace{1.5cm}
+
+    \begin{minipage}{0.8\textwidth}
+        \centering
+        {\normalsize [Course Description/Project Context] \\ {} [Presented to] \\ {} [The Department Name] \\ {} [College/University Name]}
+    \end{minipage}
+
+    \vfill
+
+    \begin{minipage}{0.8\textwidth}
+        \centering
+        {\normalsize in partial fulfillment of the requirements for the course \\ {} \textbf{[Course Name]}}
+    \end{minipage}
+
+    \vfill
+
+    {\normalsize By:} \\
+    \vspace{0.5cm}
+    {\normalsize 
+    [Author Name 1] \\ 
+    {} [Author Name 2] \\ 
+    {} [Author Name 3] \\ 
+    {} [Author Name 4]}
+
+    \vfill
+
+    {\normalsize [Month DD, YYYY]}
+\end{titlepage}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+{} [Insert introduction text here]
+
+\subsection{Objectives}
+\begin{itemize}
+    \item \textbf{[Objective 1]:} [Description]
+    \item \textbf{[Objective 2]:} [Description]
+\end{itemize}
+
+\section{Methodology}
+{} [Describe the technical workflow and methodology here]
+
+\subsection{Asset Selection}
+{} [Detail asset selection criteria and justification]
+
+\subsection{Descriptive Statistics}
+{} [Include descriptive statistical analysis here]
+
+\section{Results}
+{} [Detailed results, regression coefficients, and visual analysis]
+
+\section{Conclusion}
+{} [Summarize findings and practical implications]
+
+\printbibliography[title={References}]
+
+\end{document}
