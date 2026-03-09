@@ -1,20 +1,62 @@
 \documentclass[12pt]{article}
 
+% --- Packages for Advanced Formatting ---
 \usepackage{geometry}
 \geometry{margin=1in}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{tikz}
 \usetikzlibrary{calc}
 \usepackage{xcolor}
 \usepackage{graphicx}
-\graphicspath{{.}{..}}
+\graphicspath{{.}}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{ragged2e}
+\usepackage{indentfirst}
 \usepackage{csquotes}
 \usepackage[hidelinks]{hyperref}
 \usepackage[style=apa, backend=biber]{biblatex}
 \addbibresource{references.bib}
 
+% --- Color Definitions ---
 \definecolor{dlsugreen}{HTML}{00703C}
 
+% --- R Code Listings Configuration ---
+\lstset{
+  language=R,
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  keepspaces=true,
+  columns=flexible,
+  showstringspaces=false,
+  keywordstyle=\color{blue},
+  commentstyle=\color{dlsugreen},
+  stringstyle=\color{purple},
+  backgroundcolor=\color{gray!5},
+  frame=single,
+  framerule=0pt,
+  xleftmargin=10pt,
+  xrightmargin=10pt,
+  aboveskip=15pt,
+  belowskip=15pt
+}
+
+% --- APA 7th Edition: Headings & Indents ---
+\titleformat{\section}{\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\subsection}{0pt}{12pt}{6pt}
+\setlength{\bibhang}{0.5in}
+
 \begin{document}
+\doublespacing
+\RaggedRight
+\setlength{\parindent}{0.5in}
 
 \begin{titlepage}
     \centering
@@ -22,24 +64,14 @@
     % Top Logo and Name (Inline)
     \vspace*{0.5cm}
     \begin{tabular}{c@{\quad}l}
-        \raisebox{-2.0ex}{%
-            \IfFileExists{image/paper/dlsu_logo.png}{%
-                \includegraphics[height=3.5em]{image/paper/dlsu_logo.png}%
-            }{%
-                \rule{1in}{3.5em}% Placeholder
-            }%
-        } & 
+        \raisebox{-2.0ex}{\includegraphics[height=3.5em]{dlsu_logo.png}} & 
         \huge \textbf{\color{dlsugreen} De La Salle University}
     \end{tabular}
     
     \vfill
 
-    % Central Seal (Smaller)
-    \IfFileExists{image/paper/dlsu_logo.png}{%
-        \includegraphics[width=0.25\textwidth]{image/paper/dlsu_logo.png} \\
-    }{%
-        \rule{0.25\textwidth}{0.25\textwidth} \\
-    }
+    % Central Seal
+    \includegraphics[width=0.25\textwidth]{dlsu_logo.png} \\
 
     \vfill
 
@@ -79,29 +111,49 @@
 \newpage
 
 \section{Introduction}
-{} [Insert introduction text here]
+{} [Insert introduction text here. Contextualize the problem and define the scope.]
 
 \subsection{Objectives}
 \begin{itemize}
-    \item \textbf{[Objective 1]:} [Description]
-    \item \textbf{[Objective 2]:} [Description]
+    \item \textbf{[Primary Objective]:} [Description]
+    \item \textbf{[Secondary Objective]:} [Description]
 \end{itemize}
 
 \section{Methodology}
-{} [Describe the technical workflow and methodology here]
+{} [Describe the research design and quantitative framework.]
 
-\subsection{Asset Selection}
-{} [Detail asset selection criteria and justification]
+\subsection{Technical Workflow}
+{} [Detail the computational pipeline from ingestion to modeling.]
 
-\subsection{Descriptive Statistics}
-{} [Include descriptive statistical analysis here]
+\subsection{Data Acquisition and Preprocessing}
+{} [Describe data sources and cleaning procedures (e.g., return calculation, alignment).]
+
+\subsection{Econometric Framework}
+{} [Define the model (e.g., Multivariate OLS) and hypothesis testing logic.]
 
 \section{Results}
-{} [Detailed results, regression coefficients, and visual analysis]
+{} [Present empirical findings and statistical significance.]
+
+\subsection{Descriptive Statistics}
+{} [Summary statistics and distributional analysis.]
+
+\subsection{Visual Analytics}
+{} [Interpret key charts, scatter plots, and time-series growth.]
+
+\subsection{Regression Results and Model Performance}
+{} [Analyze coefficients, p-values, and Adjusted R-squared.]
+
+\section{Practical Implications}
+{} [Discuss the application of findings in professional or academic contexts.]
 
 \section{Conclusion}
-{} [Summarize findings and practical implications]
+{} [Summarize findings, address limitations, and propose future research.]
 
 \printbibliography[title={References}]
+
+\newpage
+\appendix
+\section{Technical Implementation Code} \label{sec:appendix_code}
+{} [Insert R/Python code snippets here using the lstlisting environment.]
 
 \end{document}
