@@ -30,14 +30,3 @@
 *.nav
 *.snm
 *.vrb
-
-*.png
-*.jpg
-*.jpeg
-*.pdf_tex
-*.eps
-*.pdf
-!DLSU_Template_Latex/*.pdf
-!DLSU_Clean_Template_Latex/*.pdf
-!**/*.tex
-!**/*.bib
