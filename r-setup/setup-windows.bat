@@ -11,7 +11,7 @@ if %errorlevel% neq 0 (
 )
 echo.
 echo Setup process finished. Press any key to close this window.
-pause
+if not defined CI pause
 exit /b
 #>
 

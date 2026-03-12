@@ -13,34 +13,93 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Syntax Check (macOS)
-        run: bash -n "r-setup/setup-macos.command"
-
-      - name: Dry Run Test (macOS)
+      - name: Mock Environment (macOS)
         run: |
-          # Mock 'brew install' to avoid long wait times
-          # but verify the script logic still works.
-          echo "Mocking brew installation for clinical speed..."
+          echo "Mocking binaries for clinical speed..."
           mkdir -p bin
+          
+          # Mock brew
           echo "#!/bin/bash" > bin/brew
-          echo "echo 'Mock brew installing \$@...'" >> bin/brew
-          chmod +x bin/brew
-          export PATH=$PWD/bin:$PATH
+          echo "echo 'Mock brew \$@...'" >> bin/brew
+          
+          # Mock gh
+          echo "#!/bin/bash" > bin/gh
+          echo "echo 'Mock gh \$@...'" >> bin/gh
+          
+          # Mock code
+          echo "#!/bin/bash" > bin/code
+          echo "echo 'Mock code \$@...'" >> bin/code
+          
+          # Mock uv
+          echo "#!/bin/bash" > bin/uv
+          echo "echo 'Mock uv \$@...'" >> bin/uv
 
-          # Run the script (CI mode will skip interactive prompts)
-          bash r-setup/setup-macos.command
+          # Mock pdflatex
+          echo "#!/bin/bash" > bin/pdflatex
+          echo "echo 'Mock pdflatex \$@...'" >> bin/pdflatex
+
+          # Mock quarto
+          echo "#!/bin/bash" > bin/quarto
+          echo "echo 'Mock quarto \$@...'" >> bin/quarto
+
+          # Mock R
+          echo "#!/bin/bash" > bin/R
+          echo "echo 'Mock R \$@...'" >> bin/R
+          
+          chmod +x bin/*
+          echo "$PWD/bin" >> $GITHUB_PATH
+
+      - name: Test R Setup (macOS)
+        env:
+          CI: "true"
+        run: bash r-setup/setup-macos.command
+
+      - name: Test Python Setup (macOS)
+        env:
+          CI: "true"
+        run: bash python-setup/setup-macos.command
 
   test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Windows Setup Logic
-        shell: powershell
+      - name: Mock Environment (Windows)
+        shell: pwsh
         run: |
-          # Verify PowerShell logic in setup-windows.bat
-          # Extract the PS1 content from the BAT file and run a basic check
-          Get-Content "r-setup/setup-windows.bat" | Select-String -Pattern "^\s*#" | Out-Null
-          Write-Host "Logic extraction complete. Running syntax check..."
-          # Since it's a BAT/PS1 hybrid, we can verify the PowerShell parts directly.
-          # More complex mock tests for winget are needed for full validation.
+          New-Item -ItemType Directory -Path "mock_bin"
+          
+          # Mock winget
+          "@echo off`necho Mock winget %*" | Out-File -FilePath "mock_bin\winget.bat" -Encoding ascii
+          
+          # Mock gh
+          "@echo off`necho Mock gh %*" | Out-File -FilePath "mock_bin\gh.bat" -Encoding ascii
+          
+          # Mock code
+          "@echo off`necho Mock code %*" | Out-File -FilePath "mock_bin\code.bat" -Encoding ascii
+          
+          # Mock uv
+          "@echo off`necho Mock uv %*" | Out-File -FilePath "mock_bin\uv.bat" -Encoding ascii
+
+          # Mock pdflatex
+          "@echo off`necho Mock pdflatex %*" | Out-File -FilePath "mock_bin\pdflatex.bat" -Encoding ascii
+          
+          # Mock quarto
+          "@echo off`necho Mock quarto %*" | Out-File -FilePath "mock_bin\quarto.bat" -Encoding ascii
+
+          # Mock Rscript
+          "@echo off`necho Mock Rscript %*" | Out-File -FilePath "mock_bin\Rscript.bat" -Encoding ascii
+          
+          echo "$pwd\mock_bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Test R Setup (Windows)
+        shell: cmd
+        env:
+          CI: "true"
+        run: r-setup\setup-windows.bat
+
+      - name: Test Python Setup (Windows)
+        shell: cmd
+        env:
+          CI: "true"
+        run: python-setup\setup-windows.bat
