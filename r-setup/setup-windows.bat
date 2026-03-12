@@ -144,31 +144,41 @@ if ($rstudio) {
     Install-WithWinget "Posit.RStudio" "RStudio"
 }
 
-# -- 8. Configure Git (only if not already set) --------------------------------
+# -- 7. Configure Git (only if not already set) --------------------------------
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-$currentName  = git config --global user.name  2>$null
-$currentEmail = git config --global user.email 2>$null
 
-if (-not $currentName) {
-    $gitName = Read-Host "[?] Enter your Git display name"
-    git config --global user.name $gitName
-}
-
-if (-not $currentEmail) {
-    $gitEmail = Read-Host "[?] Enter your Git email"
-    git config --global user.email $gitEmail
-}
-
-# -- 9. Authenticate GitHub CLI ------------------------------------------------
-$script:CurrentStep++
-Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-$authStatus = gh auth status 2>&1
-if ($authStatus -match "Logged in") {
-    Write-Host "[ok] GitHub CLI already authenticated - skipping." -ForegroundColor Green
+if ($env:CI -eq "true") {
+    Write-Host "[i] CI environment detected. Skipping interactive identity setup." -ForegroundColor Cyan
 } else {
-    Write-Host "[->] Authenticating GitHub CLI (browser will open)..." -ForegroundColor Yellow
-    gh auth login
+    $currentName  = git config --global user.name  2>$null
+    $currentEmail = git config --global user.email 2>$null
+
+    if (-not $currentName) {
+        $gitName = Read-Host "[?] Enter your Git display name"
+        git config --global user.name $gitName
+    }
+
+    if (-not $currentEmail) {
+        $gitEmail = Read-Host "[?] Enter your Git email"
+        git config --global user.email $gitEmail
+    }
+}
+
+# -- 8. Authenticate GitHub CLI ------------------------------------------------
+$script:CurrentStep++
+Write-Progress-Bar $script:CurrentStep $script:TotalSteps
+
+if ($env:CI -eq "true") {
+    Write-Host "[i] CI environment detected. Skipping interactive login." -ForegroundColor Cyan
+} else {
+    $authStatus = gh auth status 2>&1
+    if ($authStatus -match "Logged in") {
+        Write-Host "[ok] GitHub CLI already authenticated - skipping." -ForegroundColor Green
+    } else {
+        Write-Host "[->] Authenticating GitHub CLI (browser will open)..." -ForegroundColor Yellow
+        gh auth login
+    }
 }
 
 

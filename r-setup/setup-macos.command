@@ -196,46 +196,54 @@ install_cask "RStudio"        "rstudio" "/Applications/RStudio.app"
 
 # -- Phase 4: Git Identity -----------------------------------------------------
 
-echo -e "\n${CYAN}-- Git Identity ------------------------------${NC}"
-while true; do
-    CURRENT_NAME=$(git config --global user.name 2>/dev/null || echo "")
-    CURRENT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
+if [[ "$CI" == "true" ]]; then
+    echo -e "\n${CYAN}[i] CI environment detected. Skipping interactive identity setup.${NC}"
+else
+    echo -e "\n${CYAN}-- Git Identity ------------------------------${NC}"
+    while true; do
+        CURRENT_NAME=$(git config --global user.name 2>/dev/null || echo "")
+        CURRENT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
 
-    if [[ -z "$CURRENT_NAME" || -z "$CURRENT_EMAIL" ]]; then
-        echo -e "${YELLOW}[?] Git needs your name and email to label your commits.${NC}"
-        read -rp "    Full Name  : " NEW_NAME
-        read -rp "    GitHub Email: " NEW_EMAIL
+        if [[ -z "$CURRENT_NAME" || -z "$CURRENT_EMAIL" ]]; then
+            echo -e "${YELLOW}[?] Git needs your name and email to label your commits.${NC}"
+            read -rp "    Full Name  : " NEW_NAME
+            read -rp "    GitHub Email: " NEW_EMAIL
 
-        if [[ -n "$NEW_NAME" && -n "$NEW_EMAIL" ]]; then
-            git config --global user.name  "$NEW_NAME"
-            git config --global user.email "$NEW_EMAIL"
-            echo -e "${GREEN}[ok] Identity set.${NC}"
-            break
+            if [[ -n "$NEW_NAME" && -n "$NEW_EMAIL" ]]; then
+                git config --global user.name  "$NEW_NAME"
+                git config --global user.email "$NEW_EMAIL"
+                echo -e "${GREEN}[ok] Identity set.${NC}"
+                break
+            else
+                echo -e "${RED}[!] Both fields are required. Try again.${NC}"
+            fi
         else
-            echo -e "${RED}[!] Both fields are required. Try again.${NC}"
+            echo -e "${GREEN}[ok] Already set: $CURRENT_NAME <$CURRENT_EMAIL>${NC}"
+            break
         fi
-    else
-        echo -e "${GREEN}[ok] Already set: $CURRENT_NAME <$CURRENT_EMAIL>${NC}"
-        break
-    fi
-done
+    done
+fi
 
 # -- Phase 5: GitHub Authentication --------------------------------------------
 
-echo -e "\n${CYAN}-- GitHub Authentication ---------------------${NC}"
-if gh auth status &>/dev/null; then
-    echo -e "${GREEN}[ok] Already logged into GitHub CLI.${NC}"
+if [[ "$CI" == "true" ]]; then
+    echo -e "\n${CYAN}[i] CI environment detected. Skipping interactive login.${NC}"
 else
-    echo -e "${YELLOW}[!] Not logged in. Your browser will open -- sign in and come back here.${NC}"
-    echo -e "${CYAN}    When prompted, choose HTTPS and then 'Login with a web browser'.${NC}"
-    until gh auth status &>/dev/null; do
-        gh auth login --hostname github.com --git-protocol https --web
-        if gh auth status &>/dev/null; then
-            echo -e "${GREEN}[ok] Authentication complete.${NC}"
-        else
-            echo -e "${RED}[!] Login failed or cancelled. Trying again...${NC}"
-        fi
-    done
+    echo -e "\n${CYAN}-- GitHub Authentication ---------------------${NC}"
+    if gh auth status &>/dev/null; then
+        echo -e "${GREEN}[ok] Already logged into GitHub CLI.${NC}"
+    else
+        echo -e "${YELLOW}[!] Not logged in. Your browser will open -- sign in and come back here.${NC}"
+        echo -e "${CYAN}    When prompted, choose HTTPS and then 'Login with a web browser'.${NC}"
+        until gh auth status &>/dev/null; do
+            gh auth login --hostname github.com --git-protocol https --web
+            if gh auth status &>/dev/null; then
+                echo -e "${GREEN}[ok] Authentication complete.${NC}"
+            else
+                echo -e "${RED}[!] Login failed or cancelled. Trying again...${NC}"
+            fi
+        done
+    fi
 fi
 
 # -- Phase 6: RStudio Git Integration Reminder ---------------------------------
@@ -263,5 +271,9 @@ echo -e " R        : $(R --version 2>/dev/null | head -n 1 | awk '{print $3}' ||
 echo -e "${CYAN}=============================================${NC}"
 echo -e " GitHub Desktop and RStudio are in /Applications."
 echo -e "${CYAN}=============================================${NC}"
-echo -e "\nPress [Enter] to close this window."
-read -r
+echo -e "\nAll tools verified."
+
+if [[ "$CI" != "true" ]]; then
+    echo -e "\nPress [Enter] to close this window."
+    read -r
+fi

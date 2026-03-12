@@ -23,15 +23,12 @@ jobs:
           echo "Mocking brew installation for clinical speed..."
           mkdir -p bin
           echo "#!/bin/bash" > bin/brew
-          echo "echo 'Mock brew installing $@...'" >> bin/brew
+          echo "echo 'Mock brew installing \$@...'" >> bin/brew
           chmod +x bin/brew
           export PATH=$PWD/bin:$PATH
 
-          # Run the script (simulated user input)
-          # Note: We provide empty inputs for the identity section.
-          printf "\n\nTest User\ntest@example.com\n" | bash r-setup/setup-macos.command || exit 0
-          # We exit 0 here because the script might fail if brew is too mocked,
-          # but syntax and basic execution are verified.
+          # Run the script (CI mode will skip interactive prompts)
+          bash r-setup/setup-macos.command
 
   test-windows:
     runs-on: windows-latest
