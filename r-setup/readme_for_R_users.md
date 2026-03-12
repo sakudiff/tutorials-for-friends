@@ -29,7 +29,7 @@ If you don't want to run all these commands manually, I have created scripts tha
 ### Windows Users
 1. Find the file named `setup-windows.bat` in this folder.
 2. **Double-click** it. 
-3. The script will automatically install Git, GitHub CLI, R, RStudio, and GitHub Desktop using `winget`. It will also prompt you for your name/email and open the browser for GitHub authentication.
+3. The script will automatically install Git, GitHub CLI, R, Quarto, RStudio, and GitHub Desktop using `winget`. It will also prompt you for your name/email and open the browser for GitHub authentication.
 
 ### Mac Users
 1. Find the file named `setup-macos.command` in this folder.
@@ -37,7 +37,7 @@ If you don't want to run all these commands manually, I have created scripts tha
 3. If it says it "cannot be opened because it is from an unidentified developer," right-click it and select **Open**.
 4. The script will execute the following phases:
    - **Phase 1-2:** Homebrew installation/update and CLI tool setup (Git/GH).
-   - **Phase 3:** Application installation (GitHub Desktop, R, RStudio).
+   - **Phase 3:** Application installation (GitHub Desktop, Quarto, R, RStudio).
    - **Phase 4-5:** Git Identity setup and GitHub Browser Authentication.
    - **Phase 6-7:** RStudio integration reminder and final system summary.
 5. You can track progress via the visual bar in the terminal window.
@@ -403,7 +403,7 @@ The project will primarily use **Quarto Markdown (.qmd)** files. These combine R
 
 ### Install Quarto
 
-If you do not have Quarto installed, download it from [https://quarto.org/docs/get-started](https://quarto.org/docs/get-started) and run the installer. RStudio 2022.07 and later has Quarto built in, but installing the standalone version ensures you have the latest release.
+The automated setup scripts install Quarto for you. If you skipped the script or need to install it manually, download it from [https://quarto.org/docs/get-started](https://quarto.org/docs/get-started) and run the installer. RStudio 2022.07 and later has Quarto built in, but installing the standalone version ensures you have the latest release.
 
 Verify the install in RStudio's Terminal tab:
 

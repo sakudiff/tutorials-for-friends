@@ -82,7 +82,7 @@ refresh_path() {
 }
 
 # Progress Tracking
-TOTAL_STEPS=7
+TOTAL_STEPS=8
 CURRENT_STEP=0
 
 render_progress() {
@@ -132,7 +132,7 @@ install_cask() {
     render_progress
 
     echo -e "${CYAN}[->] Checking $app_name...${NC}"
-    if [ -d "$app_path" ]; then
+    if [ -d "$app_path" ] || command -v "$cask_name" &>/dev/null; then
         echo -e "${GREEN}[ok] $app_name is already installed.${NC}"
     else
         echo -e "${YELLOW}[!] $app_name missing. Downloading...${NC}"
@@ -190,6 +190,7 @@ install_tool "GitHub CLI" "gh"  "gh"
 # -- Phase 3: Applications -----------------------------------------------------
 
 install_cask "GitHub Desktop" "github"  "/Applications/GitHub Desktop.app"
+install_cask "Quarto"         "quarto"  "/Applications/Quarto"
 install_cask "R"              "r"       "/Library/Frameworks/R.framework"
 install_cask "RStudio"        "rstudio" "/Applications/RStudio.app"
 
@@ -257,6 +258,7 @@ echo -e "${CYAN}=============================================${NC}"
 echo -e " Homebrew : $(brew --version | head -n 1)"
 echo -e " Git      : $(git --version | awk '{print $3}')"
 echo -e " GitHub   : $(gh --version | head -n 1 | awk '{print $3}')"
+echo -e " Quarto   : $(quarto --version 2>/dev/null || echo 'check /Applications')"
 echo -e " R        : $(R --version 2>/dev/null | head -n 1 | awk '{print $3}' || echo 'check /Applications')"
 echo -e "${CYAN}=============================================${NC}"
 echo -e " GitHub Desktop and RStudio are in /Applications."

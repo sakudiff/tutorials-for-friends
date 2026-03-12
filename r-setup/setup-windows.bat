@@ -25,7 +25,7 @@ exit /b
 $ErrorActionPreference = "Stop"
 
 # Progress Tracking
-$TotalSteps = 8
+$TotalSteps = 9
 $CurrentStep = 0
 
 function Write-Progress-Bar {
@@ -121,7 +121,17 @@ if (Get-Command Rscript -ErrorAction SilentlyContinue) {
     Refresh-Path
 }
 
-# -- 6. RStudio ----------------------------------------------------------------
+# -- 6. Quarto -----------------------------------------------------------------
+if (Get-Command quarto -ErrorAction SilentlyContinue) {
+    $script:CurrentStep++
+    Write-Progress-Bar $script:CurrentStep $script:TotalSteps
+    Write-Host "[ok] Quarto already installed - skipping." -ForegroundColor Green
+} else {
+    Install-WithWinget "Quarto.Quarto" "Quarto"
+    Refresh-Path
+}
+
+# -- 7. RStudio ----------------------------------------------------------------
 $rstudio = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
                             "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" `
     -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "RStudio*" }
@@ -134,7 +144,7 @@ if ($rstudio) {
     Install-WithWinget "Posit.RStudio" "RStudio"
 }
 
-# -- 7. Configure Git (only if not already set) --------------------------------
+# -- 8. Configure Git (only if not already set) --------------------------------
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 $currentName  = git config --global user.name  2>$null
@@ -150,7 +160,7 @@ if (-not $currentEmail) {
     git config --global user.email $gitEmail
 }
 
-# -- 8. Authenticate GitHub CLI ------------------------------------------------
+# -- 9. Authenticate GitHub CLI ------------------------------------------------
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 $authStatus = gh auth status 2>&1
@@ -162,7 +172,7 @@ if ($authStatus -match "Logged in") {
 }
 
 
-# ── 9. Summary ────────────────────────────────────────────────────────────────
+# ── 10. Summary ───────────────────────────────────────────────────────────────
 Write-Host ""
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host " All done! Versions installed:"               -ForegroundColor Cyan
@@ -170,6 +180,7 @@ Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host " Git       : $(git --version)"
 Write-Host " GitHub CLI: $(gh --version | Select-Object -First 1)"
 Write-Host " R         : $(Rscript --version 2>&1 | Select-Object -First 1)"
+Write-Host " Quarto    : $(quarto --version)"
 Write-Host ""
 Write-Host " GitHub Desktop and RStudio are in your Start Menu."
 Write-Host ""
