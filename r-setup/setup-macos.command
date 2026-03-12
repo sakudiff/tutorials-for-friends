@@ -45,8 +45,12 @@ fi
 FREE_GB=$(df -g / | awk 'NR==2 {print $4}')
 if [[ "$FREE_GB" -lt 8 ]]; then
     echo -e "${YELLOW}[!] Low disk space: ${FREE_GB}GB free. This install needs ~5GB.${NC}"
-    read -rp "    Continue anyway? [y/N]: " DISK_CONFIRM
-    [[ "$DISK_CONFIRM" =~ ^[Yy]$ ]] || exit 0
+    if [[ "$CI" != "true" ]]; then
+        read -rp "    Continue anyway? [y/N]: " DISK_CONFIRM
+        [[ "$DISK_CONFIRM" =~ ^[Yy]$ ]] || exit 0
+    else
+        echo -e "${CYAN}[i] CI environment detected. Proceeding anyway.${NC}"
+    fi
 fi
 
 # ── Helper Functions ──────────────────────────────────────────────────────────

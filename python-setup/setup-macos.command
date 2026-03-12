@@ -43,8 +43,12 @@ fi
 FREE_GB=$(df -g / | awk 'NR==2 {print $4}')
 if [[ "$FREE_GB" -lt 8 ]]; then
     echo -e "${YELLOW}[!] Low disk space: ${FREE_GB}GB free. This install needs ~5GB.${NC}"
-    read -rp "    Continue anyway? [y/N]: " DISK_CONFIRM
-    [[ "$DISK_CONFIRM" =~ ^[Yy]$ ]] || exit 0
+    if [[ "$CI" != "true" ]]; then
+        read -rp "    Continue anyway? [y/N]: " DISK_CONFIRM
+        [[ "$DISK_CONFIRM" =~ ^[Yy]$ ]] || exit 0
+    else
+        echo -e "${CYAN}[i] CI environment detected. Proceeding anyway.${NC}"
+    fi
 fi
 
 # ── Helper Functions ──────────────────────────────────────────────────────────
@@ -72,15 +76,19 @@ retry_command() {
 
 # Refresh PATH so newly installed brew binaries are visible in this session
 refresh_path() {
+    # Homebrew environment setup
     if [[ "$(uname -m)" == "arm64" ]]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
+        [[ -x /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
     else
-        eval "$(/usr/local/bin/brew shellenv)"
+        [[ -x /usr/local/bin/brew ]] && eval "$(/usr/local/bin/brew shellenv)"
     fi
+    
+    # Prioritize typical tool locations
+    export PATH="/Library/TeX/texbin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
 }
 
 # Progress Tracking
-TOTAL_STEPS=10
+TOTAL_STEPS=11
 CURRENT_STEP=0
 
 render_progress() {
@@ -190,28 +198,19 @@ install_tool "uv"         "uv"  "uv"
 install_cask "Visual Studio Code" "visual-studio-code" "/Applications/Visual Studio Code.app"
 
 # ── Phase 7: MacTeX (LaTeX Distribution) ──────────────────────────────────────
-# mactex-no-gui is the full TeX Live distribution without the GUI utilities.
-# It installs pdflatex, latexmk, and every package needed for offline rendering.
 
 install_cask "MacTeX (No GUI)" "mactex-no-gui" "/Library/TeX/texbin"
 
-# Add TeX binaries to PATH for this session so the summary can verify them
-export PATH="/Library/TeX/texbin:$PATH"
+# Ensure PATH knows about the new binaries before summary
+refresh_path
 
 # ── Phase 8: VS Code Extensions ───────────────────────────────────────────────
 
 ((CURRENT_STEP++))
 render_progress
 
-# Ensure the code CLI is in PATH — VS Code installs it here
-CODE_BIN="/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
-export PATH="$CODE_BIN:$PATH"
-
 if ! command -v code &>/dev/null; then
     echo -e "${YELLOW}[!] VS Code 'code' command not found in PATH.${NC}"
-    echo -e "    Open VS Code, press Cmd+Shift+P, type:"
-    echo -e "    ${CYAN}Shell Command: Install 'code' command in PATH${NC}"
-    echo -e "    Then re-run this script to install extensions."
 else
     echo -e "${CYAN}[→] Installing VS Code extensions...${NC}"
     extensions=(
@@ -259,44 +258,48 @@ fi
 ((CURRENT_STEP++))
 render_progress
 
-echo -e "\n${CYAN}── Git Identity ──────────────────────────────${NC}"
-while true; do
-    CURRENT_NAME=$(git config --global user.name 2>/dev/null || echo "")
-    CURRENT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
-
-    if [[ -z "$CURRENT_NAME" || -z "$CURRENT_EMAIL" ]]; then
-        echo -e "${YELLOW}[?] Git needs your name and email to label your commits.${NC}"
-        read -rp "    Full Name   : " NEW_NAME
-        read -rp "    GitHub Email: " NEW_EMAIL
-
-        if [[ -n "$NEW_NAME" && -n "$NEW_EMAIL" ]]; then
-            git config --global user.name  "$NEW_NAME"
-            git config --global user.email "$NEW_EMAIL"
-            echo -e "${GREEN}[✓] Identity set.${NC}"
-            break
-        else
-            echo -e "${RED}[!] Both fields are required. Try again.${NC}"
-        fi
-    else
-        echo -e "${GREEN}[✓] Already set: $CURRENT_NAME <$CURRENT_EMAIL>${NC}"
-        break
-    fi
-done
-
-echo -e "\n${CYAN}── GitHub Authentication ─────────────────────${NC}"
-if gh auth status &>/dev/null; then
-    echo -e "${GREEN}[✓] Already logged into GitHub CLI.${NC}"
+if [[ "$CI" == "true" ]]; then
+    echo -e "\n${CYAN}[i] CI environment detected. Skipping interactive identity and auth setup.${NC}"
 else
-    echo -e "${YELLOW}[!] Not logged in. Your browser will open — sign in and come back here.${NC}"
-    echo -e "${CYAN}    When prompted, choose HTTPS and then 'Login with a web browser'.${NC}"
-    until gh auth status &>/dev/null; do
-        gh auth login --hostname github.com --git-protocol https --web
-        if gh auth status &>/dev/null; then
-            echo -e "${GREEN}[✓] Authentication complete.${NC}"
+    echo -e "\n${CYAN}── Git Identity ──────────────────────────────${NC}"
+    while true; do
+        CURRENT_NAME=$(git config --global user.name 2>/dev/null || echo "")
+        CURRENT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
+
+        if [[ -z "$CURRENT_NAME" || -z "$CURRENT_EMAIL" ]]; then
+            echo -e "${YELLOW}[?] Git needs your name and email to label your commits.${NC}"
+            read -rp "    Full Name   : " NEW_NAME
+            read -rp "    GitHub Email: " NEW_EMAIL
+
+            if [[ -n "$NEW_NAME" && -n "$NEW_EMAIL" ]]; then
+                git config --global user.name  "$NEW_NAME"
+                git config --global user.email "$NEW_EMAIL"
+                echo -e "${GREEN}[✓] Identity set.${NC}"
+                break
+            else
+                echo -e "${RED}[!] Both fields are required. Try again.${NC}"
+            fi
         else
-            echo -e "${RED}[!] Login failed or cancelled. Trying again...${NC}"
+            echo -e "${GREEN}[✓] Already set: $CURRENT_NAME <$CURRENT_EMAIL>${NC}"
+            break
         fi
     done
+
+    echo -e "\n${CYAN}── GitHub Authentication ─────────────────────${NC}"
+    if gh auth status &>/dev/null; then
+        echo -e "${GREEN}[✓] Already logged into GitHub CLI.${NC}"
+    else
+        echo -e "${YELLOW}[!] Not logged in. Your browser will open — sign in and come back here.${NC}"
+        echo -e "${CYAN}    When prompted, choose HTTPS and then 'Login with a web browser'.${NC}"
+        until gh auth status &>/dev/null; do
+            gh auth login --hostname github.com --git-protocol https --web
+            if gh auth status &>/dev/null; then
+                echo -e "${GREEN}[✓] Authentication complete.${NC}"
+            else
+                echo -e "${RED}[!] Login failed or cancelled. Trying again...${NC}"
+            fi
+        done
+    fi
 fi
 
 # ── Phase 10: Python via uv & Summary ─────────────────────────────────────────
@@ -311,6 +314,37 @@ else
     echo -e "${YELLOW}[!] uv python install returned a warning — Python may already be present.${NC}"
 fi
 
+# ── Phase 11: Verify LaTeX Compilation ────────────────────────────────────────
+
+((CURRENT_STEP++))
+render_progress
+
+echo -e "${CYAN}[→] Verifying LaTeX installation...${NC}"
+TEST_DIR=$(mktemp -d)
+TEX_FILE="$TEST_DIR/test.tex"
+PDF_FILE="$TEST_DIR/test.pdf"
+
+cat << 'EOF' > "$TEX_FILE"
+\documentclass{article}
+\begin{document}
+Hello World.
+\end{document}
+EOF
+
+cd "$TEST_DIR" || exit
+# Run pdflatex silently
+pdflatex -interaction=nonstopmode test.tex &>/dev/null
+cd - >/dev/null || exit
+
+if [[ -f "$PDF_FILE" ]]; then
+    echo -e "${GREEN}[✓] LaTeX rendering works perfectly.${NC}"
+else
+    echo -e "${YELLOW}[!] pdflatex failed to generate PDF. Check MacTeX installation.${NC}"
+fi
+
+# Cleanup
+rm -rf "$TEST_DIR"
+
 echo -e "\n${CYAN}=============================================${NC}"
 echo -e "${GREEN}   All done. Summary:                        ${NC}"
 echo -e "${CYAN}=============================================${NC}"
@@ -324,5 +358,8 @@ echo -e " LaTeX    : $(pdflatex --version 2>/dev/null | head -n 1 || echo 'check
 echo -e "${CYAN}=============================================${NC}"
 echo -e " Visual Studio Code is in /Applications."
 echo -e "${CYAN}=============================================${NC}"
-echo -e "\nPress [Enter] to close this window."
-read -r
+
+if [[ "$CI" != "true" ]]; then
+    echo -e "\nPress [Enter] to close this window."
+    read -r
+fi

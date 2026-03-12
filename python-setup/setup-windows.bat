@@ -1,6 +1,5 @@
 <# :
 @echo off
-chcp 65001 >nul
 setlocal
 title Python Dev Setup
 echo Starting setup...
@@ -12,7 +11,7 @@ if %errorlevel% neq 0 (
 )
 echo.
 echo Setup process finished. Press any key to close this window.
-pause
+if not defined CI pause
 exit /b
 #>
 
@@ -22,30 +21,47 @@ exit /b
 # Objective: Force-install the modern Python dev stack.
 # =============================================================================
 
-# Continue on non-critical errors; we check results explicitly per step.
 $ErrorActionPreference = "Continue"
 
-# Enable UTF-8 output for checkmarks and arrows
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
-
 # Progress Tracking
-$TotalSteps = 9
+$TotalSteps = 10
 $script:CurrentStep = 0
 
-function Write-ProgressBar {
+function Write-Progress-Bar {
     param ([int]$Current, [int]$Total)
     $width  = 30
     $pct    = [math]::Floor(($Current / $Total) * 100)
     $filled = [math]::Floor(($width * $Current) / $Total)
     $empty  = $width - $filled
-    $bar    = ([string][char]0x2588) * $filled + ([string][char]0x2591) * $empty
-    Write-Host "Progress: [$bar] $pct%" -ForegroundColor Cyan
+    $bar    = "#" * $filled + "-" * $empty
+    Write-Host "`rProgress: [$bar] $pct% " -NoNewline -ForegroundColor Cyan
+    Write-Host ""
 }
 
 function Refresh-Path {
+    # In CI, we rely on the GITHUB_PATH and mocking; registry refresh is counter-productive.
+    if ($env:CI -eq "true") { return }
+
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
                 [System.Environment]::GetEnvironmentVariable("Path", "User")
+    
+    # Common locations that installers often fail to add immediately or require a reboot for.
+    $extraPaths = @(
+        "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin",
+        "$env:ProgramFiles\Microsoft VS Code\bin",
+        "$env:ProgramFiles\Git\bin",
+        "$env:ProgramFiles\Git\cmd",
+        "$env:ProgramFiles\GitHub CLI",
+        "$env:USERPROFILE\.local\bin",
+        "$env:ProgramFiles\MiKTeX\miktex\bin\x64",
+        "$env:LOCALAPPDATA\Programs\MiKTeX\miktex\bin\x64",
+        "$env:USERPROFILE\AppData\Local\Programs\uv"
+    )
+    foreach ($p in $extraPaths) {
+        if ((Test-Path $p) -and ($env:Path -notlike "*$p*")) {
+            $env:Path = "$p;$env:Path"
+        }
+    }
 }
 
 # Install a package via winget, skipping if the verify command already exists.
@@ -69,11 +85,9 @@ function Install-WingetPackage {
     Refresh-Path
 
     # Verify the install worked regardless of winget's exit code
-    # (winget returns non-zero for "already installed" in some versions)
     if ($VerifyCmd -and (Get-Command $VerifyCmd -ErrorAction SilentlyContinue)) {
         Write-Host "[ok] $Name installed successfully." -ForegroundColor Green
     } else {
-        # Check if winget reported already installed (acceptable)
         Write-Host "[ok] $Name install step complete." -ForegroundColor Green
     }
 }
@@ -82,71 +96,54 @@ Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host "   Python Dev Setup: Clinical Execution      " -ForegroundColor Cyan
 Write-Host "=============================================" -ForegroundColor Cyan
 
-# ── Step 1: Pre-flight — winget ────────────────────────────────────────────────
+# -- Step 1: Pre-flight -- winget ----------------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 Write-Host "[->] Checking winget..." -ForegroundColor Cyan
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     Write-Host "[X] winget not found." -ForegroundColor Red
     Write-Host "    Open the Microsoft Store, search for 'App Installer', install it, then re-run this script." -ForegroundColor Yellow
-    Read-Host "Press Enter to exit"
+    if (-not $env:CI) {
+        Read-Host "Press Enter to exit"
+    }
     exit 1
 }
 Write-Host "[ok] winget found." -ForegroundColor Green
 
-# Update sources quietly — do not abort if this fails on restricted networks
+# Update sources quietly
 try { winget source update 2>&1 | Out-Null } catch {}
 
-# ── Step 2: Git ────────────────────────────────────────────────────────────────
+# -- Step 2: Git ---------------------------------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 Install-WingetPackage -Name "Git" -Id "Git.Git" -VerifyCmd "git"
 
-# ── Step 3: GitHub CLI ─────────────────────────────────────────────────────────
+# -- Step 3: GitHub CLI --------------------------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 Install-WingetPackage -Name "GitHub CLI" -Id "GitHub.cli" -VerifyCmd "gh"
 
-# ── Step 4: uv ────────────────────────────────────────────────────────────────
+# -- Step 4: uv ----------------------------------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 Install-WingetPackage -Name "uv (Python manager)" -Id "astral-sh.uv" -VerifyCmd "uv"
 
-# ── Step 5: VS Code ────────────────────────────────────────────────────────────
+# -- Step 5: VS Code -----------------------------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 Install-WingetPackage -Name "Visual Studio Code" -Id "Microsoft.VisualStudioCode" -VerifyCmd "code"
-
-# VS Code may install to AppData (user) or Program Files (system).
-# Add both possible bin locations so the code CLI is available in this session.
-$vscodeBinPaths = @(
-    "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin",
-    "$env:ProgramFiles\Microsoft VS Code\bin"
-)
-foreach ($p in $vscodeBinPaths) {
-    if (Test-Path $p) {
-        $env:Path = "$p;$env:Path"
-        break
-    }
-}
 Refresh-Path
 
-# ── Step 6: MiKTeX (LaTeX Distribution) ───────────────────────────────────────
-# MiKTeX is the standard Windows LaTeX distribution.
-# It auto-installs missing packages on demand, so documents always compile.
+# -- Step 6: MiKTeX (LaTeX Distribution) ---------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 Install-WingetPackage -Name "MiKTeX" -Id "MiKTeX.MiKTeX" -VerifyCmd "pdflatex"
 
-# ── Step 7: VS Code Extensions & LaTeX Settings ───────────────────────────────
+# -- Step 7: VS Code Extensions & LaTeX Settings -------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
     Write-Host "[!] 'code' command still not found. Extensions need to be installed manually." -ForegroundColor Yellow
-    Write-Host "    1. Open VS Code." -ForegroundColor Yellow
-    Write-Host "    2. Press Ctrl+Shift+P." -ForegroundColor Yellow
-    Write-Host "    3. Type: Shell Command: Install 'code' command in PATH" -ForegroundColor Yellow
-    Write-Host "    4. Re-run this script." -ForegroundColor Yellow
 } else {
     Write-Host "[->] Installing VS Code extensions..." -ForegroundColor Cyan
     $extensions = @(
@@ -163,7 +160,7 @@ if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
         Write-Host "    [ok] $ext" -ForegroundColor Green
     }
 
-    # Configure LaTeX Workshop: auto-compile on save, show PDF in VS Code tab
+    # Configure LaTeX Workshop
     Write-Host "[->] Configuring VS Code LaTeX settings..." -ForegroundColor Cyan
     $settingsPath = "$env:APPDATA\Code\User\settings.json"
     $settingsDir  = Split-Path $settingsPath
@@ -184,64 +181,96 @@ if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
         $merged | ConvertTo-Json -Depth 10 | Set-Content $settingsPath -Encoding UTF8
         Write-Host "    [ok] LaTeX auto-build on save enabled." -ForegroundColor Green
     } catch {
-        Write-Host "    [!] Could not write VS Code settings automatically. Set manually in Step 7d of the README." -ForegroundColor Yellow
+        Write-Host "    [!] Could not write VS Code settings automatically." -ForegroundColor Yellow
     }
 }
 
-# ── Step 7: Git Identity & GitHub Auth ────────────────────────────────────────
+# -- Step 8: Git Identity & GitHub Auth ----------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 
-Write-Host "`n-- Git Identity ------------------------------" -ForegroundColor Cyan
-while ($true) {
-    $currentName  = git config --global user.name  2>$null
-    $currentEmail = git config --global user.email 2>$null
-
-    if (-not $currentName -or -not $currentEmail) {
-        Write-Host "[?] Git needs your name and email to label your commits." -ForegroundColor Yellow
-        $newName  = Read-Host "    Full Name"
-        $newEmail = Read-Host "    GitHub Email"
-
-        if ($newName -and $newEmail) {
-            git config --global user.name  $newName
-            git config --global user.email $newEmail
-            Write-Host "[ok] Identity set." -ForegroundColor Green
-            break
-        } else {
-            Write-Host "[!] Both fields are required. Try again." -ForegroundColor Red
-        }
-    } else {
-        Write-Host "[ok] Already set: $currentName <$currentEmail>" -ForegroundColor Green
-        break
-    }
-}
-
-Write-Host "`n-- GitHub Authentication ---------------------" -ForegroundColor Cyan
-$authStatus = gh auth status 2>&1
-if ($authStatus -match "Logged in") {
-    Write-Host "[ok] Already logged into GitHub CLI." -ForegroundColor Green
+if ($env:CI -eq "true") {
+    Write-Host "[i] CI environment detected. Skipping interactive identity and auth setup." -ForegroundColor Cyan
 } else {
-    Write-Host "[!] Not logged in. Your browser will open -- sign in and come back here." -ForegroundColor Yellow
-    Write-Host "    When prompted, choose HTTPS and then 'Login with a web browser'." -ForegroundColor Cyan
-    do {
-        gh auth login --hostname github.com --git-protocol https --web
-        $authStatus = gh auth status 2>&1
-        if ($authStatus -match "Logged in") {
-            Write-Host "[ok] Authentication complete." -ForegroundColor Green
+    Write-Host "`n-- Git Identity ------------------------------" -ForegroundColor Cyan
+    while ($true) {
+        $currentName  = git config --global user.name  2>$null
+        $currentEmail = git config --global user.email 2>$null
+
+        if (-not $currentName -or -not $currentEmail) {
+            Write-Host "[?] Git needs your name and email." -ForegroundColor Yellow
+            $newName  = Read-Host "    Full Name"
+            $newEmail = Read-Host "    GitHub Email"
+
+            if ($newName -and $newEmail) {
+                git config --global user.name  $newName
+                git config --global user.email $newEmail
+                Write-Host "[ok] Identity set." -ForegroundColor Green
+                break
+            } else {
+                Write-Host "[!] Both fields are required." -ForegroundColor Red
+            }
         } else {
-            Write-Host "[!] Login failed or cancelled. Trying again..." -ForegroundColor Red
+            Write-Host "[ok] Already set: $currentName <$currentEmail>" -ForegroundColor Green
+            break
         }
-    } while ($authStatus -notmatch "Logged in")
+    }
+
+    Write-Host "`n-- GitHub Authentication ---------------------" -ForegroundColor Cyan
+    $authStatus = gh auth status 2>&1
+    if ($authStatus -match "Logged in") {
+        Write-Host "[ok] Already logged into GitHub CLI." -ForegroundColor Green
+    } else {
+        Write-Host "[!] Not logged in. Your browser will open." -ForegroundColor Yellow
+        do {
+            gh auth login --hostname github.com --git-protocol https --web
+            $authStatus = gh auth status 2>&1
+            if ($authStatus -match "Logged in") {
+                Write-Host "[ok] Authentication complete." -ForegroundColor Green
+            } else {
+                Write-Host "[!] Login failed. Trying again..." -ForegroundColor Red
+            }
+        } while ($authStatus -notmatch "Logged in")
+    }
 }
 
-# ── Step 8: Python 3.12 via uv ────────────────────────────────────────────────
+# -- Step 9: Python 3.12 via uv ------------------------------------------------
 
-$script:CurrentStep++; Write-ProgressBar $script:CurrentStep $script:TotalSteps
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
 Write-Host "[->] Installing Python 3.12 via uv..." -ForegroundColor Cyan
 uv python install 3.12
 Write-Host "[ok] Python 3.12 ready." -ForegroundColor Green
 
-# ── Summary ───────────────────────────────────────────────────────────────────
+# -- Step 10: Verify LaTeX Compilation -----------------------------------------
+
+$script:CurrentStep++; Write-Progress-Bar $script:CurrentStep $script:TotalSteps
+Write-Host "[->] Verifying LaTeX installation..." -ForegroundColor Cyan
+
+$testDir = Join-Path $env:TEMP "latex_test"
+if (-not (Test-Path $testDir)) { New-Item -ItemType Directory -Path $testDir | Out-Null }
+$texFile = Join-Path $testDir "test.tex"
+$pdfFile = Join-Path $testDir "test.pdf"
+
+@"
+\documentclass{article}
+\begin{document}
+Hello World.
+\end{document}
+"@ | Out-File -FilePath $texFile -Encoding utf8
+
+Push-Location $testDir
+# Run pdflatex quietly. MiKTeX installs packages on first run, suppress prompts.
+pdflatex --interaction=nonstopmode test.tex 2>&1 | Out-Null
+Pop-Location
+
+if (Test-Path $pdfFile) {
+    Write-Host "[ok] LaTeX rendering works perfectly." -ForegroundColor Green
+} else {
+    Write-Host "[!] pdflatex failed to generate PDF. MiKTeX may need a manual first-run." -ForegroundColor Yellow
+}
+Remove-Item -Path $testDir -Recurse -Force -ErrorAction SilentlyContinue
+
+# -- Summary -------------------------------------------------------------------
 
 Write-Host "`n=============================================" -ForegroundColor Cyan
 Write-Host "   All done. Summary:                        " -ForegroundColor Green
