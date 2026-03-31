@@ -1,10 +1,5 @@
 #!/bin/bash
-# =============================================================================
-# Python Dev Setup — macOS (uv + VS Code + GitHub CLI)
-# =============================================================================
-# Objective: Force-install the modern Python dev stack for users who find
-#            CLI setup intimidating.
-# =============================================================================
+# Python Dev Setup
 
 set -o pipefail
 
@@ -17,11 +12,9 @@ NC='\033[0m'
 cd "$(dirname "$0")"
 clear
 
-echo -e "${CYAN}=============================================${NC}"
-echo -e "${CYAN}   Python Dev Setup: Clinical Execution      ${NC}"
-echo -e "${CYAN}=============================================${NC}"
+echo -e "${CYAN}   Python Dev Setup: Clinical Execution       ${NC}"
 
-# ── Pre-flight Checks ─────────────────────────────────────────────────────────
+# Pre-flight Checks
 
 # Block root — Homebrew refuses to run as root
 if [[ "$EUID" -eq 0 ]]; then
@@ -51,7 +44,7 @@ if [[ "$FREE_GB" -lt 8 ]]; then
     fi
 fi
 
-# ── Helper Functions ──────────────────────────────────────────────────────────
+# Helper Functions
 
 # Retry a command up to 3 times with exponential backoff
 retry_command() {
@@ -88,7 +81,7 @@ refresh_path() {
 }
 
 # Progress Tracking
-TOTAL_STEPS=11
+TOTAL_STEPS=12
 CURRENT_STEP=0
 
 render_progress() {
@@ -151,7 +144,7 @@ install_cask() {
     fi
 }
 
-# ── Phase 1: Homebrew ─────────────────────────────────────────────────────────
+# Phase 1: Homebrew
 
 ((CURRENT_STEP++))
 render_progress
@@ -180,31 +173,54 @@ else
     echo -e "${GREEN}[✓] Homebrew already installed.${NC}"
 fi
 
-# ── Phase 2: Update Homebrew ──────────────────────────────────────────────────
+# Phase 2: Update Homebrew
 
 ((CURRENT_STEP++))
 render_progress
 echo -e "${CYAN}[→] Updating Homebrew...${NC}"
 brew update --quiet
 
-# ── Phase 3–5: CLI Tools ──────────────────────────────────────────────────────
+# Phase 3-5: CLI Tools
 
 install_tool "Git"        "git" "git"
 install_tool "GitHub CLI" "gh"  "gh"
 install_tool "uv"         "uv"  "uv"
 
-# ── Phase 6: VS Code ──────────────────────────────────────────────────────────
+# Phase 6: VS Code
 
 install_cask "Visual Studio Code" "visual-studio-code" "/Applications/Visual Studio Code.app"
 
-# ── Phase 7: MacTeX (LaTeX Distribution) ──────────────────────────────────────
+# Phase 7: MacTeX (LaTeX Distribution)
 
 install_cask "MacTeX (No GUI)" "mactex-no-gui" "/Library/TeX/texbin"
 
-# Ensure PATH knows about the new binaries before summary
+# Ensure PATH knows about the new binaries
 refresh_path
 
-# ── Phase 8: VS Code Extensions ───────────────────────────────────────────────
+# Phase 8: LaTeX Packages
+
+((CURRENT_STEP++))
+render_progress
+
+echo -e "${CYAN}[→] Installing additional LaTeX packages...${NC}"
+# Use tlmgr to install specific packages requested by the user.
+if command -v tlmgr &>/dev/null; then
+    sudo tlmgr update --self --all --quiet 2>/dev/null
+    latex_pkgs=(
+        "geometry" "amsmath" "amssymb" "amsfonts" "pgf" "xcolor" "graphics" 
+        "booktabs" "tabularx" "tools" "listings" "setspace" 
+        "titlesec" "ms" "indentfirst" "csquotes" "hyperref" 
+        "biblatex" "biblatex-apa" "logreq" "xstring" "biber" "caption"
+    )
+    for pkg in "${latex_pkgs[@]}"; do
+        echo -ne "    Installing $pkg... \r"
+        sudo tlmgr install "$pkg" --quiet 2>/dev/null && echo -e "    ${GREEN}[✓] $pkg${NC}          " || echo -e "    ${YELLOW}[!] $pkg (check manually)${NC}          "
+    done
+else
+    echo -e "${YELLOW}[!] tlmgr not found. Skipping package installation.${NC}"
+fi
+
+# Phase 9: VS Code Extensions
 
 ((CURRENT_STEP++))
 render_progress
@@ -253,7 +269,7 @@ PYEOF
     echo -e "    ${GREEN}[✓] LaTeX auto-build on save enabled.${NC}"
 fi
 
-# ── Phase 9: Git Identity & GitHub Auth ───────────────────────────────────────
+# Phase 10: Git Identity & GitHub Auth
 
 ((CURRENT_STEP++))
 render_progress
@@ -261,7 +277,7 @@ render_progress
 if [[ "$CI" == "true" ]]; then
     echo -e "\n${CYAN}[i] CI environment detected. Skipping interactive identity and auth setup.${NC}"
 else
-    echo -e "\n${CYAN}── Git Identity ──────────────────────────────${NC}"
+    echo -e "\n${CYAN}# Git Identity${NC}"
     while true; do
         CURRENT_NAME=$(git config --global user.name 2>/dev/null || echo "")
         CURRENT_EMAIL=$(git config --global user.email 2>/dev/null || echo "")
@@ -285,7 +301,7 @@ else
         fi
     done
 
-    echo -e "\n${CYAN}── GitHub Authentication ─────────────────────${NC}"
+    echo -e "\n${CYAN}# GitHub Authentication${NC}"
     if gh auth status &>/dev/null; then
         echo -e "${GREEN}[✓] Already logged into GitHub CLI.${NC}"
     else
@@ -302,7 +318,7 @@ else
     fi
 fi
 
-# ── Phase 10: Python via uv & Summary ─────────────────────────────────────────
+# Phase 11: Python via uv & Summary
 
 ((CURRENT_STEP++))
 render_progress
@@ -314,7 +330,7 @@ else
     echo -e "${YELLOW}[!] uv python install returned a warning — Python may already be present.${NC}"
 fi
 
-# ── Phase 11: Verify LaTeX Compilation ────────────────────────────────────────
+# Phase 12: Verify LaTeX Compilation
 
 ((CURRENT_STEP++))
 render_progress
@@ -345,9 +361,7 @@ fi
 # Cleanup
 rm -rf "$TEST_DIR"
 
-echo -e "\n${CYAN}=============================================${NC}"
-echo -e "${GREEN}   All done. Summary:                        ${NC}"
-echo -e "${CYAN}=============================================${NC}"
+echo -e "\n${GREEN}   All done. Summary:                        ${NC}"
 echo -e " Homebrew : $(brew --version | head -n 1)"
 echo -e " Git      : $(git --version | awk '{print $3}')"
 echo -e " GitHub   : $(gh --version | head -n 1 | awk '{print $3}')"
@@ -355,9 +369,7 @@ echo -e " uv       : $(uv --version)"
 echo -e " Python   : $(uv python list --only-installed 2>/dev/null | head -n 1 | awk '{print $1}' || echo 'run: uv python list')"
 echo -e " VS Code  : $(code --version 2>/dev/null | head -n 1 || echo 'check /Applications')"
 echo -e " LaTeX    : $(pdflatex --version 2>/dev/null | head -n 1 || echo 'check /Library/TeX/texbin')"
-echo -e "${CYAN}=============================================${NC}"
 echo -e " Visual Studio Code is in /Applications."
-echo -e "${CYAN}=============================================${NC}"
 
 if [[ "$CI" != "true" ]]; then
     echo -e "\nPress [Enter] to close this window."

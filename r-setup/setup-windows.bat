@@ -1,7 +1,7 @@
 <# :
 @echo off
 setlocal
-title Windows Dev Setup
+title R Setup
 echo Starting setup...
 pushd "%~dp0"
 powershell.exe -ExecutionPolicy Bypass -NoProfile -Command "IEX (Get-Content '%~f0' -Raw)"
@@ -15,32 +15,23 @@ if not defined CI pause
 exit /b
 #>
 
-# =============================================================================
-# Windows Setup Script: winget + GitHub CLI + GitHub Desktop + RStudio
-# =============================================================================
-# Objective: Force-install the dev stack for users who find CLI intimidating.
-# Efficiency: O(n) where n is the number of tools.
-# =============================================================================
+# R Setup
 
 $ErrorActionPreference = "Stop"
 
 # Progress Tracking
-$TotalSteps = 9
+$TotalSteps = 11
 $CurrentStep = 0
 
 function Write-Progress-Bar {
-    param (
-        [int]$Current,
-        [int]$Total
-    )
+    param ([int]$Current, [int]$Total)
     $width = 30
     $percent = [math]::Floor(($Current / $Total) * 100)
     $filled = [math]::Floor(($width * $Current) / $Total)
     $empty = $width - $filled
-
     $bar = "#" * $filled + "-" * $empty
     Write-Host "`rProgress: [$bar] $percent% " -NoNewline -ForegroundColor Cyan
-    Write-Host "" # New line for the next message
+    Write-Host ""
 }
 
 function Refresh-Path {
@@ -48,16 +39,8 @@ function Refresh-Path {
                 [System.Environment]::GetEnvironmentVariable("Path","User")
 }
 
-Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host " Windows Dev Setup: Clinical Execution       " -ForegroundColor Cyan
-Write-Host "=============================================" -ForegroundColor Cyan
-
-# -- Helper function -----------------------------------------------------------
 function Install-WithWinget {
-    param (
-        [string]$Id,
-        [string]$Name
-    )
+    param ([string]$Id, [string]$Name)
     $script:CurrentStep++
     Write-Progress-Bar $script:CurrentStep $script:TotalSteps
     Write-Host "[->] Installing $Name..." -ForegroundColor Yellow
@@ -65,138 +48,56 @@ function Install-WithWinget {
     Write-Host "[ok] $Name installed." -ForegroundColor Green
 }
 
-# -- 1. Check winget is available ---------------------------------------------
+# Step 1: Check winget
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-    Write-Host "[!] winget is not available." -ForegroundColor Red
-    Write-Host "    Install the 'App Installer' from the Microsoft Store,"
-    Write-Host "    then re-run this script."
-    exit 1
-}
-
-Write-Host "[ok] winget found." -ForegroundColor Green
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) { exit 1 }
 winget source update
 
-# -- 2. Git --------------------------------------------------------------------
-if (Get-Command git -ErrorAction SilentlyContinue) {
-    $script:CurrentStep++
-    Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[ok] Git already installed - skipping." -ForegroundColor Green
-} else {
-    Install-WithWinget "Git.Git" "Git"
-    # Refresh PATH so git is available in this session
-    Refresh-Path
-}
+# Step 2: Git
+if (Get-Command git -ErrorAction SilentlyContinue) { $script:CurrentStep++ } else { Install-WithWinget "Git.Git" "Git"; Refresh-Path }
 
-# -- 3. GitHub CLI (gh) --------------------------------------------------------
-if (Get-Command gh -ErrorAction SilentlyContinue) {
-    $script:CurrentStep++
-    Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[ok] GitHub CLI already installed - skipping." -ForegroundColor Green
-} else {
-    Install-WithWinget "GitHub.cli" "GitHub CLI"
-    Refresh-Path
-}
+# Step 3: GitHub CLI
+if (Get-Command gh -ErrorAction SilentlyContinue) { $script:CurrentStep++ } else { Install-WithWinget "GitHub.cli" "GitHub CLI"; Refresh-Path }
 
-# -- 4. GitHub Desktop ---------------------------------------------------------
-$githubDesktop = Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" `
-    -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "GitHub Desktop" }
+# Step 4: GitHub Desktop
+Install-WithWinget "GitHub.GitHubDesktop" "GitHub Desktop"
 
-if ($githubDesktop) {
-    $script:CurrentStep++
-    Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[ok] GitHub Desktop already installed - skipping." -ForegroundColor Green
-} else {
-    Install-WithWinget "GitHub.GitHubDesktop" "GitHub Desktop"
-}
+# Step 5: R
+if (Get-Command Rscript -ErrorAction SilentlyContinue) { $script:CurrentStep++ } else { Install-WithWinget "RProject.R" "R"; Refresh-Path }
 
-# -- 5. R ----------------------------------------------------------------------
-if (Get-Command Rscript -ErrorAction SilentlyContinue) {
-    $script:CurrentStep++
-    Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[ok] R already installed - skipping." -ForegroundColor Green
-} else {
-    Install-WithWinget "RProject.R" "R"
-    Refresh-Path
-}
+# Step 6: Quarto
+if (Get-Command quarto -ErrorAction SilentlyContinue) { $script:CurrentStep++ } else { Install-WithWinget "Quarto.Quarto" "Quarto"; Refresh-Path }
 
-# -- 6. Quarto -----------------------------------------------------------------
-if (Get-Command quarto -ErrorAction SilentlyContinue) {
-    $script:CurrentStep++
-    Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[ok] Quarto already installed - skipping." -ForegroundColor Green
-} else {
-    Install-WithWinget "Quarto.Quarto" "Quarto"
-    Refresh-Path
-}
+# Step 7: RStudio
+Install-WithWinget "Posit.RStudio" "RStudio"
 
-# -- 7. RStudio ----------------------------------------------------------------
-$rstudio = Get-ItemProperty "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
-                            "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*" `
-    -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -like "RStudio*" }
+# Step 8: MiKTeX
+if (Get-Command pdflatex -ErrorAction SilentlyContinue) { $script:CurrentStep++ } else { Install-WithWinget "MiKTeX.MiKTeX" "MiKTeX"; Refresh-Path }
 
-if ($rstudio) {
-    $script:CurrentStep++
-    Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-    Write-Host "[ok] RStudio already installed - skipping." -ForegroundColor Green
-} else {
-    Install-WithWinget "Posit.RStudio" "RStudio"
-}
-
-# -- 7. Configure Git (only if not already set) --------------------------------
+# Step 9: LaTeX Packages
 $script:CurrentStep++
 Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-
-if ($env:CI -eq "true") {
-    Write-Host "[i] CI environment detected. Skipping interactive identity setup." -ForegroundColor Cyan
-} else {
-    $currentName  = git config --global user.name  2>$null
-    $currentEmail = git config --global user.email 2>$null
-
-    if (-not $currentName) {
-        $gitName = Read-Host "[?] Enter your Git display name"
-        git config --global user.name $gitName
-    }
-
-    if (-not $currentEmail) {
-        $gitEmail = Read-Host "[?] Enter your Git email"
-        git config --global user.email $gitEmail
-    }
+$latexPkgs = @("geometry", "amsmath", "amssymb", "amsfonts", "pgf", "xcolor", "graphics", "booktabs", "tabularx", "tools", "listings", "setspace", "titlesec", "ms", "indentfirst", "csquotes", "hyperref", "biblatex", "biblatex-apa", "logreq", "xstring", "biber", "caption")
+if (Get-Command mpm -ErrorAction SilentlyContinue) {
+    foreach ($pkg in $latexPkgs) { mpm --install=$pkg --quiet 2>&1 | Out-Null }
 }
 
-# -- 8. Authenticate GitHub CLI ------------------------------------------------
-$script:CurrentStep++
-Write-Progress-Bar $script:CurrentStep $script:TotalSteps
-
-if ($env:CI -eq "true") {
-    Write-Host "[i] CI environment detected. Skipping interactive login." -ForegroundColor Cyan
-} else {
-    $authStatus = gh auth status 2>&1
-    if ($authStatus -match "Logged in") {
-        Write-Host "[ok] GitHub CLI already authenticated - skipping." -ForegroundColor Green
-    } else {
-        Write-Host "[->] Authenticating GitHub CLI (browser will open)..." -ForegroundColor Yellow
-        gh auth login
-    }
+# Step 10: Git Identity
+if ($env:CI -ne "true") {
+    $currentName = git config --global user.name 2>$null
+    if (-not $currentName) { $gitName = Read-Host "Enter Git name"; git config --global user.name $gitName }
 }
 
+# Step 11: GitHub Auth
+if ($env:CI -ne "true") {
+    if (-not (gh auth status 2>&1 -match "Logged in")) { gh auth login }
+}
 
-# ── 10. Summary ───────────────────────────────────────────────────────────────
-Write-Host ""
-Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host " All done! Versions installed:"               -ForegroundColor Cyan
-Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host " Git       : $(git --version)"
-Write-Host " GitHub CLI: $(gh --version | Select-Object -First 1)"
-Write-Host " R         : $(Rscript --version 2>&1 | Select-Object -First 1)"
-Write-Host " Quarto    : $(quarto --version)"
-Write-Host ""
-Write-Host " GitHub Desktop and RStudio are in your Start Menu."
-Write-Host ""
-Write-Host " Next steps:"
-Write-Host "  1. Open RStudio → Tools → Global Options → Git/SVN"
-Write-Host "     and confirm the Git executable path is set"
-Write-Host "     (usually C:\Program Files\Git\bin\git.exe)."
-Write-Host "  2. Run 'gh auth status' to verify GitHub login."
-Write-Host "=============================================" -ForegroundColor Cyan
+# Summary
+Write-Host "`nAll done! Versions:" -ForegroundColor Green
+try { Write-Host " Git       : $(git --version)" } catch {}
+try { Write-Host " GitHub CLI: $(gh --version | Select-Object -First 1)" } catch {}
+try { Write-Host " R         : $(Rscript --version 2>&1 | Select-Object -First 1)" } catch {}
+try { Write-Host " Quarto    : $(quarto --version)" } catch {}
+try { Write-Host " LaTeX     : $(pdflatex --version 2>&1 | Select-Object -First 1)" } catch {}
