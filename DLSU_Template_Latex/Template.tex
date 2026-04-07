@@ -1,62 +1,219 @@
+% ==============================================================================
+% DLSU Academic Paper Template (Bordered Version)
+% ==============================================================================
+% Purpose:  APA 7th-edition formatted template for De La Salle University papers
+%           This version includes decorative green borders on the title page.
+% Compile:  xelatex -> biber -> xelatex -> xelatex (or use latexmk -pdf -xelatex)
+%
+% QUICK START:
+%   1. Replace all [bracketed placeholders] with your content
+%   2. Place dlsu_logo.png in the same directory as this .tex file
+%   3. Add your references to references.bib in BibTeX format
+%   4. Compile with: latexmk -pdf -xelatex Template.tex
+%
+% STRUCTURE GUIDE:
+%   \section{...}        -> Level 1 heading (centered, bold, large)
+%   \subsection{...}     -> Level 2 heading (left-aligned, bold)
+%   \subsubsection{...}  -> Level 3 heading (left-aligned, bold, normal size)
+%   {} at start of line  -> Forces paragraph indent (APA style)
+%
+% TABLE USAGE:
+%   Normal tables (auto-scales if too wide):
+%     \begin{table}[H]
+%       \centering
+%       \begin{safetable}
+%         \begin{threeparttable}
+%           \caption{...}  \label{...}  \begin{tabular}{...} ... \end{tabular}
+%           \begin{tablenotes} \item \footnotesize Note: ... \end{tablenotes}
+%         \end{threeparttable}
+%       \end{safetable}
+%     \end{table}
+%
+%   Wide tables (landscape + auto-scale):
+%     \begin{largetable}
+%       \begin{table}[H] ...same structure... \end{table}
+%     \end{largetable}
+%
+% FIGURE USAGE:
+%   \safeincludegraphics{filename.png}         -> auto-scales to text width
+%   \safeincludegraphics[width=0.5\textwidth]{filename.png} -> custom width
+%
+% CODE LISTINGS:
+%   \begin{lstlisting}[language=R]
+%     # Your code here
+%   \end{lstlisting}
+%   Supported languages: R, Python, Java, C++, MATLAB, SQL
+%
+% CITATIONS:
+%   \cite{key}             -> (Author, Year)
+%   \textcite{key}         -> Author (Year)
+%   \parencite{key}        -> (Author, Year)
+%   \autocite{key}         -> (Author, Year)
+%   Multiple: \parencite{key1, key2}
+% ==============================================================================
+
 \documentclass[12pt]{article}
 
 % --- Packages for Advanced Formatting ---
-\usepackage{geometry}
-\geometry{margin=1in}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{tikz}
-\usetikzlibrary{calc}
-\usepackage{xcolor}
-\usepackage{graphicx}
-\graphicspath{{.}}
-\usepackage{booktabs}
-\usepackage{tabularx}
-\usepackage{array}
-\usepackage{listings}
-\usepackage{setspace}
-\usepackage{titlesec}
-\usepackage{ragged2e}
-\usepackage{indentfirst}
-\usepackage{csquotes}
-\usepackage[hidelinks]{hyperref}
-\usepackage[style=apa, backend=biber]{biblatex}
-\addbibresource{references.bib}
+\usepackage{geometry}         % Page margins
+\geometry{margin=1in}         % APA requires 1-inch margins on all sides
+\usepackage{amsmath}          % Math environments and equation support
+\usepackage{amssymb}          % Additional math symbols
+\usepackage{tikz}             % Vector graphics and diagrams (used for titlepage border)
+\usetikzlibrary{calc}         % TikZ coordinate calculations
+\usepackage{xcolor}           % Color support (defines dlsugreen below)
+\usepackage{graphicx}         % Image inclusion (\includegraphics, \safeincludegraphics)
+\graphicspath{{.}}            % Search for images in current directory
+\usepackage{caption}          % Caption formatting control
+\usepackage{subcaption}       % Sub-figures and sub-tables within a single float
+\usepackage{booktabs}         % Professional table rules (\toprule, \midrule, \bottomrule)
+\usepackage{tabularx}         % Tables with automatic column width adjustment
+\usepackage{array}            % Enhanced table column types
+\usepackage{siunitx}          % Aligned numerical columns in tables
+\usepackage{threeparttable}   % Tables with footnotes that don't affect column width
+\usepackage{rotating}         % Rotated floats (sidewaystable, sidewaysfigure)
+\usepackage{adjustbox}        % Auto-scaling tables and images to fit page
+\usepackage{pdflscape}        % Landscape pages in PDF output
+\usepackage{float}            % [H] specifier: force exact float placement
+\usepackage{tablefootnote}    % Footnotes inside tables (\tablefootnote{...})
+\usepackage{listings}         % Source code listings with syntax highlighting
+\usepackage{setspace}         % Line spacing (\doublespacing, \singlespacing)
+\usepackage{titlesec}         % Section heading format customization
+\usepackage{ragged2e}         % Improved text alignment (\RaggedRight)
+\usepackage{indentfirst}      % Indent first paragraph after each heading (APA style)
+\usepackage{csquotes}         % Context-sensitive quotation marks
+\usepackage[hidelinks]{hyperref} % Clickable references and cross-references
+\usepackage{url}              % URL formatting and line-break control
+\usepackage[style=apa, backend=biber]{biblatex} % APA 7th edition bibliography
+\addbibresource{references.bib}  % Your bibliography database file
 
 % --- Color Definitions ---
-\definecolor{dlsugreen}{HTML}{00703C}
+\definecolor{dlsugreen}{HTML}{00703C}  % Official DLSU green for headings, borders, and accents
 
 % --- R Code Listings Configuration ---
+% Supports: R, Python, Java, C++, MATLAB, SQL, and more
+% Usage: \begin{lstlisting}[language=Python] ... \end{lstlisting}
 \lstset{
   language=R,
   basicstyle=\small\ttfamily,
-  breaklines=true,
-  keepspaces=true,
-  columns=flexible,
-  showstringspaces=false,
-  keywordstyle=\color{blue},
-  commentstyle=\color{dlsugreen},
-  stringstyle=\color{purple},
-  backgroundcolor=\color{gray!5},
-  frame=single,
-  framerule=0pt,
-  xleftmargin=10pt,
-  xrightmargin=10pt,
-  aboveskip=15pt,
-  belowskip=15pt
+  breaklines=true,              % Auto-wrap long code lines
+  breakatwhitespace=true,       % Break only at spaces (not mid-identifier)
+  keepspaces=true,              % Preserve indentation on line breaks
+  columns=flexible,             % Better spacing for monospace fonts
+  showstringspaces=false,       % Do not mark spaces in strings
+  keywordstyle=\color{blue},     % Keywords in blue
+  commentstyle=\color{dlsugreen},% Comments in DLSU green
+  stringstyle=\color{purple},    % Strings in purple
+  backgroundcolor=\color{gray!5},% Light gray background
+  frame=single,                  % Single-line border around code
+  framerule=0pt,                 % No visible border (cleaner look)
+  xleftmargin=10pt,              % Left padding inside code block
+  xrightmargin=10pt,             % Right padding inside code block
+  aboveskip=15pt,                % Space above code block
+  belowskip=15pt,                % Space below code block
+  breakindent=10pt,              % Indent amount for wrapped lines
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space} % Arrow on broken lines
 }
 
 % --- APA 7th Edition: Headings & Indents ---
+% Section headings are centered, bold, and large
+% Subsection headings are left-aligned, bold, and medium
+% Subsubsection headings are left-aligned, bold, and normal size
 \titleformat{\section}{\normalfont\Large\bfseries\centering}{\thesection}{1em}{}
 \titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{1em}{}
-\titlespacing*{\section}{0pt}{12pt}{6pt}
+\titlespacing*{\section}{0pt}{12pt}{6pt}     % {left}{before}{after} spacing
 \titlespacing*{\subsection}{0pt}{12pt}{6pt}
-\setlength{\bibhang}{0.5in}
+\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{12pt}{6pt}
+\setlength{\bibhang}{0.5in}  % Hanging indent for bibliography entries (APA style)
+
+% --- Table Safety Configuration ---
+% Prevents threeparttable footnotes from shrinking table column widths
+% Tables are sized to content, not to the width of their footnotes
+\renewcommand{\TPTnoteSettings}{%
+  \parshape 1 0pt \linewidth
+  \footnotesize\itshape
+}
+
+% --- Safe Table Environments ---
+% \begin{safetable} ... \end{safetable}
+%   Auto-scales any table that exceeds \textwidth to fit within margins.
+%   Use this for all normal tables.
+%
+% \begin{largetable} ... \end{largetable}
+%   Rotates the page to landscape and auto-scales the table.
+%   Use this when a table has many columns and cannot fit portrait mode.
+%
+% Both environments center the table and work with threeparttable.
+\newenvironment{safetable}[1][\textwidth]{%
+  \begin{adjustbox}{max width=#1,center}%
+}{%
+  \end{adjustbox}%
+}
+
+\newenvironment{largetable}{%
+  \begin{landscape}%
+  \begin{adjustbox}{max width=\textwidth,center}%
+}{%
+  \end{adjustbox}%
+  \end{landscape}%
+}
+
+% --- Float Placement Configuration ---
+% Controls how LaTeX positions tables and figures on pages
+% These values prioritize placing floats at the top of pages
+\renewcommand{\topfraction}{0.9}       % Max fraction of page for top floats
+\renewcommand{\bottomfraction}{0.9}    % Max fraction of page for bottom floats
+\renewcommand{\textfraction}{0.1}      % Min fraction of page for text
+\setcounter{topnumber}{3}              % Max floats at top of page
+\setcounter{bottomnumber}{3}           % Max floats at bottom of page
+\setcounter{totalnumber}{5}            % Max floats on a single page
+
+% --- Orphan and Widow Control ---
+% Prevents single lines stranded at page top (widow) or bottom (club)
+% Setting penalties to 10000 makes LaTeX strongly avoid these situations
+\clubpenalty=10000                     % Penalize single line at page bottom
+\widowpenalty=10000                    % Penalize single line at page top
+\displaywidowpenalty=10000             % Same for display math environments
+
+% --- URL and Link Break Protection ---
+% Allows long URLs and DOIs to break at numeric/letter boundaries
+% Prevents these from overflowing into page margins
+\urlstyle{same}                        % URLs use same font as body text
+\setcounter{biburlnumpenalty}{100}     % Allow breaks after digits in URLs
+\setcounter{biburlucpenalty}{100}      % Allow breaks after uppercase letters
+\setcounter{biburllcpenalty}{100}      % Allow breaks after lowercase letters
+
+% --- Math Equation Page Break Support ---
+% Allows multi-line equation environments (align, gather) to span pages
+% Without this, long equations cause "Underfull page" warnings
+\allowdisplaybreaks
+
+% --- Caption Formatting ---
+% APA 7th edition requires single-spaced captions, smaller font
+% Labels (Table 1, Figure 1) are bold
+\captionsetup{font={small,singlespacing}, labelfont=bf}
+
+% --- Figure Width Protection Command ---
+% \safeincludegraphics{image.png} auto-scales images that exceed \textwidth
+% Optional arguments work normally: \safeincludegraphics[width=3in]{image.png}
+% Use this instead of \includegraphics to prevent image overflow
+\newcommand{\safeincludegraphics}[2][]{%
+  \adjustimage{max width=\textwidth, #1}{#2}%
+}
+
+% --- Bibliography Spacing Override ---
+% APA 7th edition requires single-spaced references
+% This overrides \doublespacing only within the bibliography
+\AtBeginBibliography{\singlespacing}
 
 \begin{document}
 \doublespacing
 \RaggedRight
 \setlength{\parindent}{0.5in}
+
+% Titlepage Page Number Suppression
+\thispagestyle{empty}
 
 \begin{titlepage}
     \centering
@@ -142,6 +299,49 @@
 
 \subsection{Descriptive Statistics}
 {} [Summary statistics and distributional analysis.]
+
+% Example: Using safetable for automatic width control
+% \begin{table}[H]
+%   \centering
+%   \begin{safetable}
+%     \begin{threeparttable}
+%       \caption{Descriptive Statistics}
+%       \label{tab:desc_stats}
+%       \begin{tabular}{lcccc}
+%         \toprule
+%         Variable & Mean & Std. Dev. & Min & Max \\
+%         \midrule
+%         [Variable 1] & [X.XX] & [X.XX] & [X.XX] & [X.XX] \\
+%         [Variable 2] & [X.XX] & [X.XX] & [X.XX] & [X.XX] \\
+%         \bottomrule
+%       \end{tabular}
+%       \begin{tablenotes}
+%         \item \footnotesize Note: [Add footnote here using \textbackslash tablefootnote\{...\} if needed]
+%       \end{tablenotes}
+%     \end{threeparttable}
+%   \end{safetable}
+% \end{table}
+
+% Example: Using largetable for very wide tables
+% \begin{largetable}
+%   \begin{table}[H]
+%     \centering
+%     \begin{threeparttable}
+%       \caption{Wide Table Example}
+%       \label{tab:wide_table}
+%       \begin{tabular}{lcccccccc}
+%         \toprule
+%         [Many columns here...] \\
+%         \midrule
+%         [Data rows...] \\
+%         \bottomrule
+%       \end{tabular}
+%       \begin{tablenotes}
+%         \item \footnotesize Note: This table is in landscape mode.
+%       \end{tablenotes}
+%     \end{threeparttable}
+%   \end{table}
+% \end{largetable}
 
 \subsection{Visual Analytics}
 {} [Interpret key charts, scatter plots, and time-series growth.]
