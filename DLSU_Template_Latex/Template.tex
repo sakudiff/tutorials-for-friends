@@ -4,19 +4,19 @@
 % Purpose:  APA 7th-edition formatted template for De La Salle University papers
 %           This version includes decorative green borders on the title page.
 % Compile:  xelatex -> biber -> xelatex -> xelatex (or use latexmk -pdf -xelatex)
-%
+% 
 % QUICK START:
 %   1. Replace all [bracketed placeholders] with your content
 %   2. Place dlsu_logo.png in the same directory as this .tex file
 %   3. Add your references to references.bib in BibTeX format
 %   4. Compile with: latexmk -pdf -xelatex Template.tex
-%
+% 
 % STRUCTURE GUIDE:
 %   \section{...}        -> Level 1 heading (centered, bold, large)
 %   \subsection{...}     -> Level 2 heading (left-aligned, bold)
 %   \subsubsection{...}  -> Level 3 heading (left-aligned, bold, normal size)
 %   {} at start of line  -> Forces paragraph indent (APA style)
-%
+% 
 % TABLE USAGE:
 %   Normal tables (auto-scales if too wide):
 %     \begin{table}[H]
@@ -28,22 +28,22 @@
 %         \end{threeparttable}
 %       \end{safetable}
 %     \end{table}
-%
+% 
 %   Wide tables (landscape + auto-scale):
 %     \begin{largetable}
 %       \begin{table}[H] ...same structure... \end{table}
 %     \end{largetable}
-%
+% 
 % FIGURE USAGE:
 %   \safeincludegraphics{filename.png}         -> auto-scales to text width
 %   \safeincludegraphics[width=0.5\textwidth]{filename.png} -> custom width
-%
+% 
 % CODE LISTINGS:
 %   \begin{lstlisting}[language=R]
 %     # Your code here
 %   \end{lstlisting}
 %   Supported languages: R, Python, Java, C++, MATLAB, SQL
-%
+% 
 % CITATIONS:
 %   \cite{key}             -> (Author, Year)
 %   \textcite{key}         -> Author (Year)
@@ -59,11 +59,13 @@
 \geometry{margin=1in}         % APA requires 1-inch margins on all sides
 \usepackage{amsmath}          % Math environments and equation support
 \usepackage{amssymb}          % Additional math symbols
+\let\Bbbk\relax               % Prevent conflict between amssymb and newtxmath
+\usepackage{newtxtext,newtxmath} % Times New Roman
 \usepackage{tikz}             % Vector graphics and diagrams (used for titlepage border)
 \usetikzlibrary{calc}         % TikZ coordinate calculations
 \usepackage{xcolor}           % Color support (defines dlsugreen below)
 \usepackage{graphicx}         % Image inclusion (\includegraphics, \safeincludegraphics)
-\graphicspath{{.}}            % Search for images in current directory
+\graphicspath{{.}}
 \usepackage{caption}          % Caption formatting control
 \usepackage{subcaption}       % Sub-figures and sub-tables within a single float
 \usepackage{booktabs}         % Professional table rules (\toprule, \midrule, \bottomrule)
@@ -112,7 +114,7 @@
   aboveskip=15pt,                % Space above code block
   belowskip=15pt,                % Space below code block
   breakindent=10pt,              % Indent amount for wrapped lines
-  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space} % Arrow on broken lines
+  postbreak=\mbox{\textcolor{red}{\hookrightarrow$}}\space % Arrow on broken lines
 }
 
 % --- APA 7th Edition: Headings & Indents ---
@@ -130,34 +132,22 @@
 % --- Table Safety Configuration ---
 % Prevents threeparttable footnotes from shrinking table column widths
 % Tables are sized to content, not to the width of their footnotes
-\renewcommand{\TPTnoteSettings}{%
-  \parshape 1 0pt \linewidth
-  \footnotesize\itshape
+\renewcommand{\TPTnoteSettings}{\parshape 1 0pt \linewidth\footnotesize\itshape
 }
 
 % --- Safe Table Environments ---
 % \begin{safetable} ... \end{safetable}
 %   Auto-scales any table that exceeds \textwidth to fit within margins.
 %   Use this for all normal tables.
-%
+% 
 % \begin{largetable} ... \end{largetable}
 %   Rotates the page to landscape and auto-scales the table.
 %   Use this when a table has many columns and cannot fit portrait mode.
-%
+% 
 % Both environments center the table and work with threeparttable.
-\newenvironment{safetable}[1][\textwidth]{%
-  \begin{adjustbox}{max width=#1,center}%
-}{%
-  \end{adjustbox}%
-}
+\newenvironment{safetable}[1][\textwidth]{\begin{adjustbox}{max width=#1,center}}{\end{adjustbox}}
 
-\newenvironment{largetable}{%
-  \begin{landscape}%
-  \begin{adjustbox}{max width=\textwidth,center}%
-}{%
-  \end{adjustbox}%
-  \end{landscape}%
-}
+\newenvironment{largetable}{\begin{landscape}\begin{adjustbox}{max width=\textwidth,center}}{\end{adjustbox}\end{landscape}}
 
 % --- Float Placement Configuration ---
 % Controls how LaTeX positions tables and figures on pages
@@ -198,8 +188,7 @@
 % \safeincludegraphics{image.png} auto-scales images that exceed \textwidth
 % Optional arguments work normally: \safeincludegraphics[width=3in]{image.png}
 % Use this instead of \includegraphics to prevent image overflow
-\newcommand{\safeincludegraphics}[2][]{%
-  \adjustimage{max width=\textwidth, #1}{#2}%
+\newcommand{\safeincludegraphics}[2][]{% \adjustimage{max width=\textwidth, #1}{#2}%
 }
 
 % --- Bibliography Spacing Override ---
@@ -259,9 +248,9 @@
     {\normalsize By:} \\
     \vspace{0.5cm}
     {\normalsize 
-    [Author Name 1] \\ 
-    {} [Author Name 2] \\ 
-    {} [Author Name 3] \\ 
+    [Author Name 1] \\
+    {} [Author Name 2] \\
+    {} [Author Name 3] \\
     {} [Author Name 4]}
 
     \vfill
@@ -316,7 +305,7 @@
 %         \bottomrule
 %       \end{tabular}
 %       \begin{tablenotes}
-%         \item \footnotesize Note: [Add footnote here using \textbackslash tablefootnote\{...\} if needed]
+%         \item \footnotesize Note: [Add footnote here using \textbackslash tablefootnote{...} if needed]
 %       \end{tablenotes}
 %     \end{threeparttable}
 %   \end{safetable}
