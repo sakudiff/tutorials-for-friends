@@ -1,0 +1,35 @@
+.claude/
+.gemini/
+.DS_Store
+*.Rproj.user
+*.RData
+*.Rhistory
+.Ruserdata
+
+# LaTeX Build Artifacts
+*.aux
+*.log
+*.toc
+*.out
+*.fls
+*.fdb_latexmk
+*.bbl
+*.bcf
+*.blg
+*.run.xml
+*.synctex.gz
+*.xdv
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.maf
+*.mtc
+*.mtc0
+*.nav
+*.snm
+*.vrb
+
+# Pi agent config
+.pi/
